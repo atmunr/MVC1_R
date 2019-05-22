@@ -48,7 +48,7 @@ PLS = function( Xcal, Ycaln, var_lat ) {
 
 # prueba todos los números de variables latentes desde 1 a var_lat_max
 # y devuelve su error estadístico PRESS por validación cruzada
-errorPorNumVarLat = function( Xcal, Ycaln, var_lat_max ) {
+errorPorNumVarLat = function( Xcal, Ycaln, var_lat_max, centrar ) {
 
   # salida, lista de errores PRESS, de uno a var_lat_max
   press_vals = numeric( var_lat_max )
@@ -61,15 +61,16 @@ errorPorNumVarLat = function( Xcal, Ycaln, var_lat_max ) {
       yout   = Ycaln[i]
       Ycalnp = Ycaln[-i]
 
-      # se centran los datos
-      datos_centrados_X = centrarMatriz_2_2( Xcalp )
-      Xcalp             = datos_centrados_X[[1]]
-      Xcalpmean         = datos_centrados_X[[2]]
-      datos_centrados_Y = centrarVector( Ycalnp )
-      Ycalnp            = datos_centrados_Y[[1]]
-      Ycalnpmean        = datos_centrados_Y[[2]]
-      xout = xout - Xcalpmean
-      yout = yout - Ycalnpmean
+      if ( centrar == TRUE ) { # se centran los datos
+        datos_centrados_X = centrarMatriz_2_2( Xcalp )
+        Xcalp             = datos_centrados_X[[1]]
+        Xcalpmean         = datos_centrados_X[[2]]
+        datos_centrados_Y = centrarVector( Ycalnp )
+        Ycalnp            = datos_centrados_Y[[1]]
+        Ycalnpmean        = datos_centrados_Y[[2]]
+        xout = xout - Xcalpmean
+        yout = yout - Ycalnpmean
+      }
 
       # se crea un modelo PLS con los datos, se intenta predecir el valor de la
       # muestra aislada y se suma el error cuadrado al PRESS de este número de
@@ -108,9 +109,9 @@ probFstat = function( f, k1, k2 ) {
 }
 
 # calcula el número óptimo de variables latentes a utilizar entre 1 y var_lat_max
-numOptimoVarLat = function( Xcal, Ycaln, var_lat_max ) {
+numOptimoVarLat = function( Xcal, Ycaln, var_lat_max, centrar ) {
   # errores PRESS de distintos número de variables latentes
-  press_vals = errorPorNumVarLat( Xcal, Ycaln, var_lat_max )
+  press_vals = errorPorNumVarLat( Xcal, Ycaln, var_lat_max, centrar )
   # estadísticas F para los errores PRESS
   f_vals = press_vals / press_vals[ length(press_vals) ]
   # probabilidad P de obtener cada estadística F
@@ -123,14 +124,14 @@ numOptimoVarLat = function( Xcal, Ycaln, var_lat_max ) {
   return(-1)
 }
 
-Xcal  = as.matrix(read.table("Xcal.txt" )) # espectros de calibrado
-Ycal1 = as.matrix(read.table("Ycal1.txt")) # concentraciones de calibrado del primer analito
-Xtest = as.matrix(read.table("Xtest.txt")) # espectros de predicción
+Xcal  = as.matrix(read.table("tests/Xcal.txt" )) # espectros de calibrado
+Ycal1 = as.matrix(read.table("tests/Ycal1.txt")) # concentraciones de calibrado del primer analito
+Xtest = as.matrix(read.table("tests/Xtest.txt")) # espectros de predicción
 
-A = numOptimoVarLat( Xcal, Ycal1, 10 ) # variables latentes
+A = numOptimoVarLat( Xcal, Ycal1, 10, centrar = TRUE ) # variables latentes
 
 bn = PLS( Xcal, Ycal1, A ) # coeficientes de regresión
 
 Ytest1 = t(Xtest) %*% bn # concentraciones predichas del primer analito
 
-write.table( Ytest1, file = "Ytest1.txt", row.names = FALSE, col.names = FALSE )
+write.table( Ytest1, file = "tests/Ytest1.txt", row.names = FALSE, col.names = FALSE )
