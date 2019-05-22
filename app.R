@@ -4,15 +4,18 @@ ui <- fluidPage(
   headerPanel("Calibración Multivariada"),
   sidebarPanel(tabsetPanel(
     tabPanel( "Carga de Datos",
-      fileInput("inputXcal" , "Calibración X"),
-      fileInput("inputYcal" , "Calibración Y"),
-      fileInput("inputXtest", "Prueba X"),
-      fileInput("inputYtest", "Prueba Y")
+      fileInput("input_Xcal" , "Calibración X"),
+      fileInput("input_Ycal" , "Calibración Y"),
+      fileInput("input_Xtest", "Prueba X"),
+      fileInput("input_Ytest", "Prueba Y"),
+      checkboxInput("input_centrar", "Centrar datos")
     )
   )),
   mainPanel(
     tabsetPanel(
-      tabPanel("Output"),
+      tabPanel("Output",
+        textOutput("output_centrar")
+      ),
       tabPanel("Gráficas")
     )
   )
@@ -21,14 +24,16 @@ ui <- fluidPage(
 server <- function(input, output) {
 
   data <- reactive({
-    Xcalarch  <- input$inputXcal
-    Ycalarch  <- input$inputYcal
-    Xtestarch <- input$inputXtest
-    Ytestarch <- input$inputYtest
-    Xcal   = as.matrix(read.table( Xcalarch  )) # matriz de calibración X
-    Ycal   = as.matrix(read.table( Ycalarch  )) # matriz de calibración Y
-    Xtest  = as.matrix(read.table( Xtestarch )) # matriz de prueba X
-    Ytest  = as.matrix(read.table( Ytestarch )) # matriz de prueba X
+    Xcalarch  <- input$input_Xcal
+    Ycalarch  <- input$input_Ycal
+    Xtestarch <- input$input_Xtest
+    Ytestarch <- input$input_Ytest
+    Xcal   <- as.matrix(read.table( Xcalarch  )) # matriz de calibración X
+    Ycal   <- as.matrix(read.table( Ycalarch  )) # matriz de calibración Y
+    Xtest  <- as.matrix(read.table( Xtestarch )) # matriz de prueba X
+    Ytest  <- as.matrix(read.table( Ytestarch )) # matriz de prueba X
+
+    centrar <- input$input_centrar
   })
 
 }
