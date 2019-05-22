@@ -25,6 +25,11 @@ server <- function(input, output) {
     Ycalarch  <- input$inputYcal
     Xtestarch <- input$inputXtest
     Ytestarch <- input$inputYtest
+    Xcal   = as.matrix(read.table( Xcalarch  )) # matriz de calibración X
+    Ycal   = as.matrix(read.table( Ycalarch  )) # matriz de calibración Y
+    Xtest  = as.matrix(read.table( Xtestarch )) # matriz de prueba X
+    Ytest  = as.matrix(read.table( Ytestarch )) # matriz de prueba X
+
   })
 
 }
