@@ -1,6 +1,8 @@
 library(shiny)
 
-ui <- fluidPage()
+ui <- fluidPage(
+  titlePanel("Calibración Multivariada")
+)
 
 server <- function(input, output){}
 
