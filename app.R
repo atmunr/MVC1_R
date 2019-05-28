@@ -3,37 +3,48 @@ library(shiny)
 ui <- fluidPage(
   headerPanel("Calibración Multivariada"),
   sidebarPanel(tabsetPanel(
-    tabPanel( "Carga de Datos",
-      fileInput("input_Xcal" , "Calibración X"),
-      fileInput("input_Ycal" , "Calibración Y"),
-      fileInput("input_Xtest", "Prueba X"),
-      fileInput("input_Ytest", "Prueba Y"),
-      checkboxInput("input_centrar", "Centrar datos")
+    tabPanel("Datos del programa",
+      fileInput("Xcal" , "Calibración X"),
+      fileInput("Ycal" , "Calibración Y"),
+      fileInput("Xtest", "Prueba X"),
+      fileInput("Ytest", "Prueba Y")
+    ),
+    tabPanel("Opciones",
+      checkboxInput("centrar", "Centrar datos"),
+      selectInput("algoritmo", "Algoritmo:",
+        c("PLS" = "PLS")),
+      numericInput("nvarlat", "Variables Latentes",
+        value = 1, min = 1, max = 100),
+      actionButton("construirmodelo", "Construir modelo")
     )
   )),
   mainPanel(
     tabsetPanel(
       tabPanel("Output",
-        textOutput("output_centrar")
+      selectInput("showraw", "Mostrar datos:", c(
+        "Calibración X" = "Xcal",
+        "Calibración Y" = "Ycal",
+        "Prueba X"      = "Xtest",
+        "Prueba Y"      = "Ytest"
+        )),
+        textOutput("Xcal"),
+        tableOutput("matriz")
       ),
       tabPanel("Gráficas")
     )
   )
 )
 
-server <- function(input, output) {
+server <- function(input, output, session) {
 
-  data <- reactive({
-    Xcalarch  <- input$input_Xcal
-    Ycalarch  <- input$input_Ycal
-    Xtestarch <- input$input_Xtest
-    Ytestarch <- input$input_Ytest
-    Xcal   <- as.matrix(read.table( Xcalarch  )) # matriz de calibración X
-    Ycal   <- as.matrix(read.table( Ycalarch  )) # matriz de calibración Y
-    Xtest  <- as.matrix(read.table( Xtestarch )) # matriz de prueba X
-    Ytest  <- as.matrix(read.table( Ytestarch )) # matriz de prueba X
-
-    centrar <- input$input_centrar
+  observe({
+    if( input$showraw == "Xcal"  ) { frawmatrix <- input$Xcal  }
+    if( input$showraw == "Ycal"  ) { frawmatrix <- input$Ycal  }
+    if( input$showraw == "Xtest" ) { frawmatrix <- input$Xtest }
+    if( input$showraw == "Ytest" ) { frawmatrix <- input$Ytest }
+    if ( is.null(frawmatrix) ) { rawmatrix <- NULL }
+    else { rawmatrix <- read.table( frawmatrix$datapath ) }
+    output$matriz <- renderTable({ rawmatrix })
   })
 
 }
