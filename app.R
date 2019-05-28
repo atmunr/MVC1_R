@@ -27,7 +27,6 @@ ui <- fluidPage(
         "Prueba X"      = "Xtest",
         "Prueba Y"      = "Ytest"
         )),
-        textOutput("Xcal"),
         tableOutput("matriz")
       ),
       tabPanel("Gráficas")
