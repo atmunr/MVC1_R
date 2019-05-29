@@ -1,50 +1,55 @@
 library(shiny)
+library(shinythemes)
 
-ui <- fluidPage(
-  headerPanel("Calibración Multivariada"),
-  sidebarPanel(tabsetPanel(
-    tabPanel("Datos del programa",
-      fileInput("Xcal" , "Calibración X"),
-      fileInput("Ycal" , "Calibración Y"),
-      fileInput("Xtest", "Prueba X"),
-      fileInput("Ytest", "Prueba Y")
-    ),
-    tabPanel("Opciones",
-      checkboxInput("centrar", "Centrar datos"),
-      selectInput("algoritmo", "Algoritmo:",
-        c("PLS" = "PLS")),
-      numericInput("nvarlat", "Variables Latentes",
-        value = 1, min = 1, max = 100),
-      actionButton("construirmodelo", "Construir modelo")
-    )
-  )),
-  mainPanel(
-    tabsetPanel(
-      tabPanel("Output",
-      selectInput("showraw", "Mostrar datos:", c(
-        "Calibración X" = "Xcal",
-        "Calibración Y" = "Ycal",
-        "Prueba X"      = "Xtest",
-        "Prueba Y"      = "Ytest"
-        )),
-        tableOutput("matriz")
-      ),
-      tabPanel("Gráficas")
-    )
-  )
+ui <- fluidPage( theme = shinytheme("darkly"),
+
+headerPanel("Calibración Multivariada"),
+
+    sidebarPanel(tabsetPanel(
+
+        tabPanel( "Datos de entrada",
+            fileInput( "calib.x" , "Calibración X" ),
+            fileInput( "calib.y" , "Calibración Y" ),
+            fileInput(  "test.x" ,      "Prueba X" ),
+            fileInput(  "test.y" ,      "Prueba Y" )
+        ),
+        tabPanel( "Opciones",
+            checkboxInput( "centrar", "Centrar datos" ),
+            selectInput( "algoritmo", "Algoritmo:",
+                c("PLS" = "pls"
+            )),
+            numericInput( "num.var.lat", "Variables Latentes",
+                value = 1, min = 1, max = 100 ),
+            actionButton( "construir.modelo", "Construir modelo" )
+        )
+    )),
+    mainPanel(tabsetPanel(
+
+        tabPanel( "Datos del programa",
+            selectInput( "vis.crudo", "Mostrar datos:", c(
+                "Calibración X" = "calib.x" ,
+                "Calibración Y" = "calib.y" ,
+                     "Prueba X" = "test.x"  ,
+                     "Prueba Y" = "test.y"
+
+            )),
+            tableOutput( "vis.crudo.out" )
+        ),
+        tabPanel( "Gráficas" )
+    ))
 )
 
-server <- function(input, output, session) {
+server <- function( input, output ) {
 
-  observe({
-    if( input$showraw == "Xcal"  ) { frawmatrix <- input$Xcal  }
-    if( input$showraw == "Ycal"  ) { frawmatrix <- input$Ycal  }
-    if( input$showraw == "Xtest" ) { frawmatrix <- input$Xtest }
-    if( input$showraw == "Ytest" ) { frawmatrix <- input$Ytest }
-    if ( is.null(frawmatrix) ) { rawmatrix <- NULL }
-    else { rawmatrix <- read.table( frawmatrix$datapath ) }
-    output$matriz <- renderTable({ rawmatrix })
-  })
+    observe({
+        if( input$vis.crudo == "calib.x" ) { vis.crudo.val.file <- input$calib.x }
+        if( input$vis.crudo == "calib.y" ) { vis.crudo.val.file <- input$calib.y }
+        if( input$vis.crudo ==  "test.x" ) { vis.crudo.val.file <- input$test.x  }
+        if( input$vis.crudo ==  "test.y" ) { vis.crudo.val.file <- input$test.y  }
+        if ( is.null(vis.crudo.val.file) ) { vis.crudo.val <- NULL }
+        else { vis.crudo.val <- read.table( vis.crudo.val.file$datapath ) }
+        output$vis.crudo.out <- renderTable({ vis.crudo.val })
+    })
 
 }
 
