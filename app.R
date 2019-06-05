@@ -11,6 +11,9 @@ data$calib.x.cent <- NULL
 data$calib.x.prom <- NULL
 data$calib.y.cent <- NULL
 data$calib.y.prom <- NULL
+data$num.var.lat <- NULL
+data$coef.regr <- NULL
+data$test.y.pred <- NULL
 
 ui <- fluidPage( theme = shinytheme("darkly"),
 
@@ -43,8 +46,9 @@ headerPanel("Calibración Multivariada"),
                      "Prueba X" = "test.x"  ,
                      "Prueba Y" = "test.y"  ,
 				"Calibración X Centrado" = "calib.x.cent" ,
-				"Calibración Y Centrado" = "calib.y.cent"
-
+				"Calibración Y Centrado" = "calib.y.cent" ,
+				"Coeficientes de regresión" = 'coef.regr',
+				"Valores Y Predichos" = 'test.y.pred'
             )), tableOutput( "vis.crudo.out" )
         ),
         tabPanel( "Gráficas",
@@ -54,7 +58,9 @@ headerPanel("Calibración Multivariada"),
 					 "Prueba X" = "test.x"  ,
 					 "Prueba Y" = "test.y"  ,
 				"Calibración X Centrado" = "calib.x.cent" ,
-	 			"Calibración Y Centrado" = "calib.y.cent"
+	 			"Calibración Y Centrado" = "calib.y.cent" ,
+				"Coeficientes de regresión" = 'coef.regr',
+				"Valores Y Predichos" = 'test.y.pred'
 			)), plotOutput( "vis.grafica.out" )
 		)
     ))
@@ -75,9 +81,7 @@ server <- function( input, output ) {
 		if( !is.null( input$test.y  ) ) {
 			    data$test.y <<- as.matrix(read.table( (input$test.y)$datapath  ))
 		} else  data$test.y <<- NULL
-	})
 
-	observe({
 		if( input$centrar.datos == TRUE ) {
 			if( !is.null(data$calib.x) ) {
 				datos_centrados_X <- CentrarMatriz2DPorColumnas( data$calib.x )
@@ -93,6 +97,8 @@ server <- function( input, output ) {
 			data$calib.x.cent <<- NULL
 			data$calib.y.cent <<- NULL
 		}
+
+		data$num.var.lat <<- input$num.var.lat
 	})
 
 	observe({
@@ -102,18 +108,20 @@ server <- function( input, output ) {
 			 'test.x' = data$test.x,
 			 'test.y' = data$test.y,
 			 'calib.x.cent' = data$calib.x.cent,
-			 'calib.y.cent' = data$calib.y.cent
+			 'calib.y.cent' = data$calib.y.cent,
+			 'coef.regr' = data$coef.regr,
+			 'test.y.pred' = data$test.y.pred
 		))
-	})
 
-	observe({
 		vis.grafica.val <- switch(input$vis.grafica,
 			'calib.x' = data$calib.x,
 			'calib.y' = data$calib.y,
 			 'test.x' = data$test.x,
  			 'test.y' = data$test.y,
-			 'calib.x.cent' = data$calib.x.cent,
-			 'calib.y.cent' = data$calib.y.cent)
+			'calib.x.cent' = data$calib.x.cent,
+			'calib.y.cent' = data$calib.y.cent,
+			'coef.regr' = data$coef.regr,
+			'test.y.pred' = data$test.y.pred)
 		if( is.null(vis.grafica.val) ) {
 			     output$vis.grafica.out <- NULL
 		} else { output$vis.grafica.out <- renderPlot({
@@ -126,15 +134,35 @@ server <- function( input, output ) {
    				 	legend( 'bottom', inset = 1,
    						legend = sprintf("%s", seq( 1 : ncol(vis.grafica.val) )),
    					 	horiz = TRUE, fill = c( 1 : ncol(vis.grafica.val) ) ) },
-				'calib.y' = , 'calib.y.cent' = , 'test.y' = {
+				'calib.y' = , 'calib.y.cent' = , 'test.y' = , 'test.y.pred' = {
 					plot( 1 : nrow(vis.grafica.val), vis.grafica.val[,1],
    						xlab = 'N° de Muestra', ylab = 'Contenido',
    						bg = c( 1 : nrow(vis.grafica.val) ), pch = 21 )
    				 	legend( 'bottom', inset = 1,
    						legend = sprintf("%s", seq( 1 : nrow(vis.grafica.val) )),
-   						horiz = TRUE, fill = c( 1 : nrow(vis.grafica.val) ) ) }
+   						horiz = TRUE, fill = c( 1 : nrow(vis.grafica.val) ) ) },
+				'coef.regr' = {
+					matplot( 1 : nrow(vis.grafica.val), vis.grafica.val,
+   						xlab = 'Espectro', ylab = 'Valor de coeficiente',
+   						lwd = 1.5, type = 'l' )
+				}
 			)
 		})}
+	})
+
+	observeEvent(input$construir.modelo, {
+		if( input$centrar.datos == TRUE ) {
+			   data$coef.regr <<- CalcularCoefRegrPLS(
+				   data$calib.x.cent, data$calib.y.cent, data$num.var.lat )
+		} else {
+			data$coef.regr <<- CalcularCoefRegrPLS(
+				data$calib.x, data$calib.y, data$num.var.lat )
+		}
+
+		data$test.y.pred <<- t( data$test.x ) %*% data$coef.regr
+		if( input$centrar.datos == TRUE ) {
+			data$test.y.pred <<- data$test.y.pred + data$calib.y.prom
+		}
 	})
 
 }
