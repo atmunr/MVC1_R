@@ -124,14 +124,14 @@ CalcularNumOptVarLat = function( calib.x, calib.y, num.max.var.lat, centrar.dato
   return(-1)
 }
 
-calib.x = as.matrix(read.table("tests/Xcalib.txt" )) # espectros de calibrado
-calib.y = as.matrix(read.table("tests/Ycalib.txt" )) # concentraciones de calibrado del primer analito
-test.x  = as.matrix(read.table("tests/Xtest.txt"  )) # espectros de predicción
+#calib.x = as.matrix(read.table("tests/Xcalib.txt" )) # espectros de calibrado
+#calib.y = as.matrix(read.table("tests/Ycalib.txt" )) # concentraciones de calibrado del primer analito
+#test.x  = as.matrix(read.table("tests/Xtest.txt"  )) # espectros de predicción
 
-num.var.lat = CalcularNumOptVarLat( calib.x, calib.y, 10, centrar.datos = TRUE ) # variables latentes
+#num.var.lat = CalcularNumOptVarLat( calib.x, calib.y, 10, centrar.datos = TRUE ) # variables latentes
 
-coef.regr = CalcularCoefRegrPLS( calib.x, calib.y, num.var.lat ) # coeficientes de regresión
+#coef.regr = CalcularCoefRegrPLS( calib.x, calib.y, num.var.lat ) # coeficientes de regresión
 
-test.y = t( test.x ) %*% coef.regr # concentraciones predichas del primer analito
+#test.y = t( test.x ) %*% coef.regr # concentraciones predichas del primer analito
 
-write.table( test.y, file = "tests/Ytest.txt", row.names = FALSE, col.names = FALSE )
+#write.table( test.y, file = "tests/Ytest.txt", row.names = FALSE, col.names = FALSE )
