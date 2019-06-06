@@ -151,17 +151,26 @@ server <- function( input, output ) {
 	})
 
 	observeEvent(input$construir.modelo, {
-		if( input$centrar.datos == TRUE ) {
-			   data$coef.regr <<- CalcularCoefRegrPLS(
-				   data$calib.x.cent, data$calib.y.cent, data$num.var.lat )
-		} else {
+		if( input$centrar.datos == TRUE && !is.null(data$test.x) &&
+		    !is.null(data$calib.x.cent) && !is.null(data$calib.y.cent)
+		) {
+			data$coef.regr <<- CalcularCoefRegrPLS(
+				data$calib.x.cent, data$calib.y.cent, data$num.var.lat )
+
+			data$test.x.cent <<- data$test.x
+			for( i in 1 : ncol(data$test.x.cent) ) {
+				data$test.x.cent[,i] <<- data$test.x.cent[,i] - data$calib.x.prom
+			}
+
+			data$test.y.pred <<- t( data$test.x.cent ) %*% data$coef.regr
+			data$test.y.pred <<- data$test.y.pred + data$calib.y.prom
+		} else if (
+		  !is.null(data$calib.x) && !is.null(data$calib.y) && !is.null(data$test.x)
+		){
 			data$coef.regr <<- CalcularCoefRegrPLS(
 				data$calib.x, data$calib.y, data$num.var.lat )
-		}
 
-		data$test.y.pred <<- t( data$test.x ) %*% data$coef.regr
-		if( input$centrar.datos == TRUE ) {
-			data$test.y.pred <<- data$test.y.pred + data$calib.y.prom
+			data$test.y.pred <<- t( data$test.x ) %*% data$coef.regr
 		}
 	})
 
