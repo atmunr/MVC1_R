@@ -12,8 +12,11 @@ data$calib.x.prom <- NULL
 data$calib.y.cent <- NULL
 data$calib.y.prom <- NULL
 data$num.var.lat <- NULL
-data$coef.regr <- NULL
+data$coef.regr   <- NULL
 data$test.y.pred <- NULL
+data$press.num.var.lat  <- NULL
+data$fstat.num.var.lar  <- NULL
+data$pfstat.num.var.lat <- NULL
 
 ui <- fluidPage( theme = shinytheme("darkly"),
 
@@ -28,13 +31,19 @@ headerPanel("Calibración Multivariada"),
             fileInput(  "test.y" ,      "Prueba Y" )
         ),
         tabPanel( "Opciones",
-            checkboxInput( "centrar.datos", "Centrar datos" ),
+			tags$b("Construcción del modelo"),
+			checkboxInput( "centrar.datos", "Centrar datos" ),
             selectInput( "algoritmo", "Algoritmo:",
                 c("PLS" = "pls"
             )),
             numericInput( "num.var.lat", "Variables Latentes",
                 value = 1, min = 1, max = 100 ),
-            actionButton( "construir.modelo", "Construir modelo" )
+            actionButton( "construir.modelo", "Construir modelo" ),
+			tags$hr(),
+			tags$b("Validación del modelo"),
+			numericInput( "num.max.var.lat", "Número Máximo de Variables Latentes",
+                value = 1, min = 1, max = 100 ),
+			actionButton( "validar.modelo", "Validar modelo" )
         )
     )),
     mainPanel(tabsetPanel(
@@ -48,7 +57,10 @@ headerPanel("Calibración Multivariada"),
 				"Calibración X Centrado" = "calib.x.cent" ,
 				"Calibración Y Centrado" = "calib.y.cent" ,
 				"Coeficientes de regresión" = 'coef.regr',
-				"Valores Y Predichos" = 'test.y.pred'
+				"Valores Y Predichos" = 'test.y.pred',
+				"PRESS por número de variables latentes" = 'press.num.var.lat',
+				"Estadística F por número de variables latentes" = 'fstat.num.var.lat',
+				"Probabilidad de Estadística F" = 'pfstat.num.var.lat'
             )), tableOutput( "vis.crudo.out" )
         ),
         tabPanel( "Gráficas",
@@ -60,7 +72,10 @@ headerPanel("Calibración Multivariada"),
 				"Calibración X Centrado" = "calib.x.cent" ,
 	 			"Calibración Y Centrado" = "calib.y.cent" ,
 				"Coeficientes de regresión" = 'coef.regr',
-				"Valores Y Predichos" = 'test.y.pred'
+				"Valores Y Predichos" = 'test.y.pred',
+				"PRESS por número de variables latentes" = 'press.num.var.lat',
+				"Estadística F por número de variables latentes" = 'fstat.num.var.lat',
+				"Probabilidad de Estadística F" = 'pfstat.num.var.lat'
 			)), plotOutput( "vis.grafica.out" )
 		)
     ))
@@ -110,7 +125,10 @@ server <- function( input, output ) {
 			 'calib.x.cent' = data$calib.x.cent,
 			 'calib.y.cent' = data$calib.y.cent,
 			 'coef.regr' = data$coef.regr,
-			 'test.y.pred' = data$test.y.pred
+			 'test.y.pred' = data$test.y.pred,
+			 'press.num.var.lat'  = data$press.num.var.lat,
+			 'fstat.num.var.lat'  = data$fstat.num.var.lat,
+			 'pfstat.num.var.lat' = data$pfstat.num.var.lat
 		))
 
 		vis.grafica.val <- switch(input$vis.grafica,
@@ -121,7 +139,10 @@ server <- function( input, output ) {
 			'calib.x.cent' = data$calib.x.cent,
 			'calib.y.cent' = data$calib.y.cent,
 			'coef.regr' = data$coef.regr,
-			'test.y.pred' = data$test.y.pred)
+			'test.y.pred' = data$test.y.pred,
+			'press.num.var.lat'  = data$press.num.var.lat,
+			'fstat.num.var.lat'  = data$fstat.num.var.lat,
+			'pfstat.num.var.lat' = data$pfstat.num.var.lat)
 		if( is.null(vis.grafica.val) ) {
 			     output$vis.grafica.out <- NULL
 		} else { output$vis.grafica.out <- renderPlot({
@@ -141,7 +162,8 @@ server <- function( input, output ) {
    				 	legend( 'bottom', inset = 1,
    						legend = sprintf("%s", seq( 1 : nrow(vis.grafica.val) )),
    						horiz = TRUE, fill = c( 1 : nrow(vis.grafica.val) ) ) },
-				'coef.regr' = {
+				'coef.regr' = , 'press.num.var.lat' = , 'fstat.num.var.lat' = ,
+				'pfstat.num.var.lat' = {
 					matplot( 1 : nrow(vis.grafica.val), vis.grafica.val,
    						xlab = 'Espectro', ylab = 'Valor de coeficiente',
    						lwd = 1.5, type = 'l' )
@@ -173,6 +195,21 @@ server <- function( input, output ) {
 			data$test.y.pred <<- t( data$test.x ) %*% data$coef.regr
 		}
 	})
+
+	observeEvent(input$validar.modelo, { if (
+		!is.null(data$calib.x) && !is.null(data$calib.y) && !is.null(data$test.x)
+	) {
+
+		data$press.num.var.lat <<- as.matrix(CalcularPRESSPorNumVarLat(
+			data$calib.x, data$calib.y, input$num.max.var.lat, input$centrar.datos ))
+
+		data$fstat.num.var.lat <<- data$press.num.var.lat /
+			data$press.num.var.lat[ length( data$press.num.var.lat ) ]
+
+		data$pfstat.num.var.lat <<- as.matrix(CalcularProbF(
+			data$fstat.num.var.lat, ncol( data$calib.x ), ncol( data$calib.x ) ))
+
+	}})
 
 }
 
