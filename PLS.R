@@ -125,14 +125,37 @@ CalcularNumOptVarLat = function( calib.x, calib.y, num.max.var.lat, centrar.dato
 	return(-1)
 }
 
-#calib.x = as.matrix(read.table("tests/Xcalib.txt" )) # espectros de calibrado
-#calib.y = as.matrix(read.table("tests/Ycalib.txt" )) # concentraciones de calibrado del primer analito
-#test.x  = as.matrix(read.table("tests/Xtest.txt"  )) # espectros de predicción
+Preprocesar.SavitzkyGolay = function( espectro, orden.derivada, grado.polinomio, largo.ventana ) {
 
-#num.var.lat = CalcularNumOptVarLat( calib.x, calib.y, 10, centrar.datos = TRUE ) # variables latentes
+	CalcularCoeficientesPolinomio <- function( orden.derivada, grado.polinomio, largo.ventana ) {
+		ventana <- matrix( nrow = 1, ncol = largo.ventana )
+		me <- (largo.ventana + 1) / 2
+		mat <- matrix( nrow = 6, ncol = largo.ventana )
+		for( i in 1 : nrow(mat) ) {
+			mat[i,] <- ventana ^ (i-1)
+		}
+		p <- numeric( 6 )
+		if( orden.derivada == 0 ) {
+			p <- c( me^0, me^1,   me^2,   me^3,    me^4,    me^5 )
+		} else if( orden.derivada == 1 ) {
+			p <- c(    0,    1, 2*me^1, 3*me^2,  4*me^3,  5*me^4 )
+		} else if( orden.derivada == 2 ) {
+			p <- c(    0,    0,      2, 6*me^1, 12*me^2, 20*me^3 )
+		}
+		return( solve(mat[ 1:grado.polinomio+1, ]) * p[ 1:grado.polinomio+1, ] )
+	}
+	coeficientes.polinomio <- CalcularCoeficientesPolinomio(
+		orden.derivada, grado.polinomio, largo.ventana )
 
-#coef.regr = CalcularCoefRegrPLS( calib.x, calib.y, num.var.lat ) # coeficientes de regresión
+	espectro.procesado <- matrix( nrow = nrow(espectro) - largo.ventana + 1, ncol = ncol(espectro)  )
 
-#test.y = t( test.x ) %*% coef.regr # concentraciones predichas del primer analito
-
-#write.table( test.y, file = "tests/Ytest.txt", row.names = FALSE, col.names = FALSE )
+	z <- numeric( nrow(espectro.procesado) - largo.ventana - 1 )
+	for(     i in 1 : ncol(espectro.procesado)                      ) {
+		for( j in 1 : nrow(espectro.procesado) - largo.ventana - 1  ) {
+			data <- espectro[ j:j+largo.ventana-1, i ]
+			z[i] <- t(coeficientes.polinomio) * data
+		}
+		espectro.procesado[,i] <- t(z)
+	}
+	return( espectro.procesado )
+}
