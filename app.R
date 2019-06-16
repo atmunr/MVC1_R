@@ -105,8 +105,9 @@ ui = fluidPage( theme = shinytheme('darkly'),
 				'PRESS por Número de Variables Latentes' =  'press.variablesLatentes',
 				'Estadística F por Número de Variables Latentes' = 'fstat.variablesLatentes',
 				'Probabilidad de la Estadística F por Número de Variables Latentes' = 'probFstat.variablesLatentes',
-				'Concentraciones Predichas' = 'concentracionesPredichas'
-				)), tableOutput( 'datosSalida.mostrar.grafica.figura' )
+				'Concentraciones Predichas' = 'concentracionesPredichas',
+				'Prueba Y' = 'prueba.y'
+			)), plotOutput( 'datosSalida.mostrar.grafica.figura' )
 				)
 			))
   		)
@@ -240,8 +241,7 @@ server <- function( input, output ) {
 			datosSalida$concentracionesPredichas <<-
 				t(prePro$prueba.x) %*% datosSalida$coeficientesRegresion
 			if (input$centrarDatos == TRUE) {
-				datosSalida$concentracionesPredichas <<-
-				datosSalida$concentracionesPredichas + prePro$espectroPromedio
+				datosSalida$concentracionesPredichas <<- datosSalida$concentracionesPredichas + prePro$calib.y.valorPromedio
 			}
 		}
 	}})
@@ -255,10 +255,10 @@ server <- function( input, output ) {
  			}
 			prePro$calib.y     <<- prePro$calib.y     + prePro$calib.y.valorPromedio
 			datosSalida$press.variablesLatentes <<- as.matrix(CalcularPRESSPorNumVarLat(
-				prePro$calib.x, prePro$calib.x, input$numMaxVariablesLatentes, centrar.datos = TRUE  ))
+				prePro$calib.x, prePro$calib.y, input$numMaxVariablesLatentes, centrar.datos = TRUE  ))
  		} else {
 			datosSalida$press.variablesLatentes <<- as.matrix(CalcularPRESSPorNumVarLat(
-				prePro$calib.x, prePro$calib.x, input$numMaxVariablesLatentes, centrar.datos = FALSE ))
+				prePro$calib.x, prePro$calib.y, input$numMaxVariablesLatentes, centrar.datos = FALSE ))
 		}
 
 		datosSalida$fstat.variablesLatentes <<- datosSalida$press.variablesLatentes /
@@ -276,7 +276,8 @@ server <- function( input, output ) {
 			 'press.variablesLatentes' = datosSalida$press.variablesLatentes,
 			 'fstat.variablesLatentes' = datosSalida$fstat.variablesLatentes,
 			 'probFstat.variablesLatentes' = datosSalida$probFstat.variablesLatentes,
-			 'concentracionesPredichas' = datosSalida$concentracionesPredichas
+			 'concentracionesPredichas' = datosSalida$concentracionesPredichas,
+			 'prueba.y' = datosEntrada$prueba.y
 		))
 
 		mostrar.grafica.val <- switch(input$datosSalida.mostrar.grafica,
@@ -284,22 +285,24 @@ server <- function( input, output ) {
 			'press.variablesLatentes' = datosSalida$press.variablesLatentes,
 			'fstat.variablesLatentes' = datosSalida$fstat.variablesLatentes,
 			'probFstat.variablesLatentes' = datosSalida$probFstat.variablesLatentes,
-			'concentracionesPredichas' = datosSalida$concentracionesPredichas
+			'concentracionesPredichas' = datosSalida$concentracionesPredichas,
+			'prueba.y' = datosEntrada$prueba.y
 		)
 		if (is.null(mostrar.grafica.val)) {
 			      output$datosSalida.mostrar.grafica.figura <- NULL
 		} else {  output$datosSalida.mostrar.grafica.figura <- renderPlot({
 			switch(input$datosSalida.mostrar.grafica,
 				'coeficientesRegresion' = , 'press.variablesLatentes' = ,
-				'fstat.variablesLatentes' = , 'probFstat.variablesLatentes' = ,
-				'concentracionesPredichas' = {
-					plot( 1 : length(mostrar.grafica.val), mostrar.grafica.val,
-   						xlab = 'Espectro', ylab = 'Absorbancia',
-   						lwd = 1.5, type = 'l' )},
-				'concentracionesPredichas' = {
+				'fstat.variablesLatentes' = , 'probFstat.variablesLatentes' = {
+					plot( 1 : nrow(mostrar.grafica.val), mostrar.grafica.val[,1],
+	   					xlab = 'Espectro', ylab = 'Valor de coeficiente',
+	   					lwd = 1.5, type = 'l'
+					)},
+				'concentracionesPredichas' = , 'prueba.y' = {
 					plot( 1 : nrow(mostrar.grafica.val), mostrar.grafica.val[,1],
    						xlab = 'N° de Muestra', ylab = 'Contenido',
-   						bg = c( 1 : nrow(mostrar.grafica.val) ), pch = 21 )}
+   						bg = c( 1 : nrow(mostrar.grafica.val) ), pch = 21
+					)}
 			)
 		})}
 	})

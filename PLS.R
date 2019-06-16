@@ -1,3 +1,26 @@
+# centra un vector
+CentrarVector = function( vector ) {
+	vector.prom = mean( vector )
+	vector.cent = vector - vector.prom
+	return(list( vector.cent, vector.prom ))
+}
+
+# centra una matriz 2D por columnas
+CentrarMatriz2DPorColumnas = function( matriz ) {
+	# columna promedio de M: el i-ésimo valor de column_prom es el promedio de
+	# los valores de la i-ésima fila de M
+	colprom = matrix( nrow = nrow( matriz ) )
+	for ( i in 1 : nrow( matriz ) ) {
+		colprom[i] = mean( matriz[i,] )
+	}
+	# matriz centrada: a cada columna se le resta la columna promedio
+	matriz.cent = matrix( nrow = nrow( matriz ), ncol = ncol( matriz ) )
+	for ( i in 1 : ncol(matriz.cent) ) {
+		matriz.cent[,i] = matriz[,i] - colprom
+	}
+	return(list( matriz.cent, colprom ))
+}
+
 # produce coeficientes de regresión
 # para unas muestras de calibrado y un número variables latentes
 # usando el modelo PLS
