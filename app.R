@@ -70,6 +70,10 @@ ui = fluidPage( theme = shinytheme('darkly'),
 			sidebarPanel(
 				# elección de métodos de preprocesado
 				checkboxInput( 'centrarDatos', 'Centrar Datos' ),
+				checkboxInput( 'suavizarSavitzkyGolay', 'Suavizado Savitzky Golay' ),
+				numericInput( 'suavizarSavitzkyGolay.ordenDerivada', 'Orden de derivada', min = 1, max = 3, value = 1 ),
+				numericInput( 'suavizarSavitzkyGolay.gradoPolinomio', 'Grado del polinomio', min = 1, max = 5, value = 1 ),
+				numericInput( 'suavizarSavitzkyGolay.largoVentana', 'Largo de la ventana', min = 1, max = 9, value = 1 ),
 				# botón para realizar el preprocesamieto
 				actionButton( 'preprocesarDatos', 'Actualizar' )
 			),
@@ -267,6 +271,22 @@ server <- function( input, output ) {
 				}
 			}
 		}
+
+		if (input$suavizarSavitzkyGolay == TRUE) {
+			if (!is.null(prePro$calib.x)) {
+				prePro$calib.x <<- SuavizarSavitzkyGolay( prePro$calib.x,
+					input$suavizarSavitzkyGolay.ordenDerivada,
+					input$suavizarSavitzkyGolay.gradoPolinomio,
+					input$suavizarSavitzkyGolay.largoVentana)
+			}
+			if (!is.null(prePro$prueba.x)) {
+				prePro$prueba.x <<- SuavizarSavitzkyGolay( prePro$prueba.x,
+					input$suavizarSavitzkyGolay.ordenDerivada,
+					input$suavizarSavitzkyGolay.gradoPolinomio,
+					input$suavizarSavitzkyGolay.largoVentana)
+			}
+		}
+
 	})
 
 	# visualizaciones de los datos preprocesados

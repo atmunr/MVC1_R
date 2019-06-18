@@ -125,7 +125,7 @@ CalcularNumOptVarLat = function( calib.x, calib.y, num.max.var.lat, centrar.dato
 	return(-1)
 }
 
-Preprocesar.SavitzkyGolay = function( espectro, orden.derivada, grado.polinomio, largo.ventana ) {
+SuavizarSavitzkyGolay = function( espectro, orden.derivada, grado.polinomio, largo.ventana ) {
 
 	CalcularCoeficientesPolinomio <- function( orden.derivada, grado.polinomio, largo.ventana ) {
 		ventana <- matrix( nrow = 1, ncol = largo.ventana )
@@ -142,18 +142,20 @@ Preprocesar.SavitzkyGolay = function( espectro, orden.derivada, grado.polinomio,
 		} else if( orden.derivada == 2 ) {
 			p <- c(    0,    0,      2, 6*me^1, 12*me^2, 20*me^3 )
 		}
-		return( solve(mat[ 1:grado.polinomio+1, ]) * p[ 1:grado.polinomio+1, ] )
+		aux <- mat[ 1:grado.polinomio+1, ]
+		aux <- solve(t(aux) %*% aux) %*% t(aux)
+		return( aux %*% p[ 1:grado.polinomio+1 ] )
 	}
 	coeficientes.polinomio <- CalcularCoeficientesPolinomio(
 		orden.derivada, grado.polinomio, largo.ventana )
 
 	espectro.procesado <- matrix( nrow = nrow(espectro) - largo.ventana + 1, ncol = ncol(espectro)  )
 
-	z <- numeric( nrow(espectro.procesado) - largo.ventana - 1 )
-	for(     i in 1 : ncol(espectro.procesado)                      ) {
-		for( j in 1 : nrow(espectro.procesado) - largo.ventana - 1  ) {
-			data <- espectro[ j:j+largo.ventana-1, i ]
-			z[i] <- t(coeficientes.polinomio) * data
+	for(     i in 1 : ncol(espectro.procesado)     ) {
+		z <- numeric( nrow(espectro.procesado) - 2 )
+		for( j in 1 : nrow(espectro.procesado) - 2 ) {
+			data  <- espectro[ j:j+largo.ventana-1, i ]
+			z[j]  <- data * t(coeficientes.polinomio)
 		}
 		espectro.procesado[,i] <- t(z)
 	}
