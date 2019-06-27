@@ -142,6 +142,30 @@ ui = fluidPage( theme = shinytheme('darkly'),
 				)), plotOutput( 'datosSalida.mostrar.grafica.figura' )
 				)
 			))
+  		),
+		# estadísticas sobre la calidad de la predicción
+		tabPanel( 'Estadísticas',
+			sidebarPanel(
+				tags$b('Lorem ipsum'),
+				tags$hr(),
+				tags$b('bla bla bla'),
+				tags$hr(),
+				tags$b('uwu')
+			),
+			mainPanel(tabsetPanel(
+				 # mostrar estadísticas en forma de tabla
+				tabPanel( 'Datos crudos',
+				selectInput( 'estad.mostrar.crudo', 'Mostrar:', c(
+				'Concentraciones esperadas y predichas' = 'prueba.y.vs.concentPred'
+				)), tableOutput( 'estad.mostrar.crudo.figura' )
+				),
+				 # mostrar estadísticas en forma de gráfica
+				tabPanel( 'Gráfica',
+ 				selectInput( 'estad.mostrar.grafica', 'Mostrar:', c(
+ 				'Concentraciones esperadas y predichas' = 'prueba.y.vs.concentPred'
+				)), plotOutput( 'estad.mostrar.grafica.figura' )
+ 				)
+			))
   		)
 	)
 )
