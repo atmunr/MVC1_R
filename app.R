@@ -239,6 +239,21 @@ server <- function( input, output ) {
 			   prePro$prueba.x <<- datosEntrada$prueba.x
 		} else prePro$prueba.x <<- NULL
 
+		if (input$suavizarSavitzkyGolay == TRUE) {
+			if (!is.null(prePro$calib.x)) {
+				prePro$calib.x <<- SuavizarSavitzkyGolay( prePro$calib.x,
+					input$suavizarSavitzkyGolay.ordenDerivada,
+					input$suavizarSavitzkyGolay.gradoPolinomio,
+					input$suavizarSavitzkyGolay.largoVentana)
+			}
+			if (!is.null(prePro$prueba.x)) {
+				prePro$prueba.x <<- SuavizarSavitzkyGolay( prePro$prueba.x,
+					input$suavizarSavitzkyGolay.ordenDerivada,
+					input$suavizarSavitzkyGolay.gradoPolinomio,
+					input$suavizarSavitzkyGolay.largoVentana)
+			}
+		}
+
 		# centrado de los datos
 		# (sólo se puede hacer algún centrado si existen los espectros de calibración)
 		if (input$centrarDatos == TRUE && !is.null(prePro$calib.x)) {
@@ -269,21 +284,6 @@ server <- function( input, output ) {
 				for ( i in 1 : ncol(prePro$prueba.x) ) {
 					prePro$prueba.x[,i] <<- prePro$prueba.x[,i] - prePro$calib.x.espectroPromedio
 				}
-			}
-		}
-
-		if (input$suavizarSavitzkyGolay == TRUE) {
-			if (!is.null(prePro$calib.x)) {
-				prePro$calib.x <<- SuavizarSavitzkyGolay( prePro$calib.x,
-					input$suavizarSavitzkyGolay.ordenDerivada,
-					input$suavizarSavitzkyGolay.gradoPolinomio,
-					input$suavizarSavitzkyGolay.largoVentana)
-			}
-			if (!is.null(prePro$prueba.x)) {
-				prePro$prueba.x <<- SuavizarSavitzkyGolay( prePro$prueba.x,
-					input$suavizarSavitzkyGolay.ordenDerivada,
-					input$suavizarSavitzkyGolay.gradoPolinomio,
-					input$suavizarSavitzkyGolay.largoVentana)
 			}
 		}
 
@@ -367,23 +367,25 @@ server <- function( input, output ) {
 	(!is.null(prePro$calib.x) && !is.null(prePro$calib.y)) {
 		# si se centraron los datos, se tienen que decentralizar antes de
 		# realizar la validacíon del modelo
+		calib.x <- prePro$calib.x
+		calib.y <- prePro$calib.y
 		if (input$centrarDatos == TRUE) {
 			# decentraliza calib.x
  			for ( i in 1 : ncol(prePro$calib.x) ) {
- 				prePro$calib.x[,i] <<- prePro$calib.x[,i] + prePro$calib.x.espectroPromedio
+ 				calib.x[,i] <- prePro$calib.x[,i] + prePro$calib.x.espectroPromedio
  			}
 			# decentraliza calib.y
-			prePro$calib.y <<- prePro$calib.y + prePro$calib.y.valorPromedio
+			calib.y <- prePro$calib.y + prePro$calib.y.valorPromedio
  		}
 		# calcula los errores PRESS por número de variables latentes
 		datosSalida$press.variablesLatentes <<- as.matrix(CalcularPRESSPorNumVarLat(
-			prePro$calib.x, prePro$calib.y, input$numMaxVariablesLatentes, centrar.datos = input$centrarDatos  ))
+			calib.x, calib.y, input$numMaxVariablesLatentes, centrar.datos = input$centrarDatos  ))
 		# calcula las estadísticas F producidas con los valores PRESS
 		datosSalida$fstat.variablesLatentes <<- datosSalida$press.variablesLatentes /
 			datosSalida$press.variablesLatentes[ length(datosSalida$press.variablesLatentes) ]
 		# calcula las probabilidades de obtener cada estadística F
 		datosSalida$probFstat.variablesLatentes <<- as.matrix(CalcularProbF(
-			datosSalida$fstat.variablesLatentes, ncol( prePro$calib.x ), ncol( prePro$calib.x ) ))
+			datosSalida$fstat.variablesLatentes, ncol( calib.x ), ncol( calib.x ) ))
 
 	}})
 

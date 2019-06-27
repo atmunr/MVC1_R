@@ -126,15 +126,14 @@ CalcularNumOptVarLat = function( calib.x, calib.y, num.max.var.lat, centrar.dato
 }
 
 SuavizarSavitzkyGolay = function( espectro, orden.derivada, grado.polinomio, largo.ventana ) {
-
 	CalcularCoeficientesPolinomio <- function( orden.derivada, grado.polinomio, largo.ventana ) {
-		ventana <- matrix( nrow = 1, ncol = largo.ventana )
+		ventana <- c(1 : largo.ventana)
 		me <- (largo.ventana + 1) / 2
 		mat <- matrix( nrow = 6, ncol = largo.ventana )
 		for( i in 1 : nrow(mat) ) {
 			mat[i,] <- ventana ^ (i-1)
 		}
-		p <- numeric( 6 )
+		p <- matrix( ncol = 6 )
 		if( orden.derivada == 0 ) {
 			p <- c( me^0, me^1,   me^2,   me^3,    me^4,    me^5 )
 		} else if( orden.derivada == 1 ) {
@@ -142,20 +141,28 @@ SuavizarSavitzkyGolay = function( espectro, orden.derivada, grado.polinomio, lar
 		} else if( orden.derivada == 2 ) {
 			p <- c(    0,    0,      2, 6*me^1, 12*me^2, 20*me^3 )
 		}
-		aux <- mat[ 1:grado.polinomio+1, ]
-		aux <- solve(t(aux) %*% aux) %*% t(aux)
-		return( aux %*% p[ 1:grado.polinomio+1 ] )
+		p <- t(p)
+		p <- t(p)
+		p <- p[ 1 : (grado.polinomio+1) ]
+		aux <- t(mat[ 1 : (grado.polinomio+1) , ])
+		aux <- t(solve(t(aux) %*% aux) %*% t(aux))
+		coeficientes <- matrix( nrow = largo.ventana )
+		for (i in 1 : nrow(coeficientes)) {
+			coeficientes[i,] <- aux[i,] %*% p
+		}
+		return (coeficientes)
 	}
-	coeficientes.polinomio <- CalcularCoeficientesPolinomio(
-		orden.derivada, grado.polinomio, largo.ventana )
-
-	espectro.procesado <- matrix( nrow = nrow(espectro) - largo.ventana + 1, ncol = ncol(espectro)  )
-
-	for(     i in 1 : ncol(espectro.procesado)     ) {
-		z <- numeric( nrow(espectro.procesado) - 2 )
-		for( j in 1 : nrow(espectro.procesado) - 2 ) {
-			data  <- espectro[ j:j+largo.ventana-1, i ]
-			z[j]  <- data * t(coeficientes.polinomio)
+	coeficientes <- CalcularCoeficientesPolinomio(
+		orden.derivada, grado.polinomio, largo.ventana)
+	espectro.procesado <- matrix(
+		nrow = nrow(espectro) - largo.ventana - 1,
+		ncol = ncol(espectro)
+	)
+	for (i in 1 : ncol(espectro.procesado)) {
+		z <- numeric( nrow(espectro.procesado) )
+		for (j in 1 : nrow(espectro.procesado) ) {
+			data <- espectro[ j : (j+largo.ventana-1), i ]
+			z[j] <- t(coeficientes) %*% data
 		}
 		espectro.procesado[,i] <- t(z)
 	}
