@@ -1,12 +1,12 @@
 # centra un vector
-CentrarVector = function( vector ) {
+CentrarVector <- function( vector ) {
 	vector.prom = mean( vector )
 	vector.cent = vector - vector.prom
 	return(list( vector.cent, vector.prom ))
 }
 
 # centra una matriz 2D por columnas
-CentrarMatriz2DPorColumnas = function( matriz ) {
+CentrarMatriz2DPorColumnas <- function( matriz ) {
 	# columna promedio de M: el i-ésimo valor de column_prom es el promedio de
 	# los valores de la i-ésima fila de M
 	colprom = matrix( nrow = nrow( matriz ) )
@@ -24,7 +24,7 @@ CentrarMatriz2DPorColumnas = function( matriz ) {
 # produce coeficientes de regresión
 # para unas muestras de calibrado y un número variables latentes
 # usando el modelo PLS
-CalcularCoefRegrPLS = function( calib.x, calib.y, num.var.lat ) {
+CalcularCoefRegrPLS <- function( calib.x, calib.y, num.var.lat ) {
 
 	I = ncol( calib.x ) # n° de muestras en Xcal
 	J = nrow( calib.x ) # orden de una muestra
@@ -49,7 +49,7 @@ CalcularCoefRegrPLS = function( calib.x, calib.y, num.var.lat ) {
 
 # prueba todos los números de variables latentes desde 1 a var_lat_max
 # y devuelve su error estadístico PRESS por validación cruzada
-CalcularPRESSPorNumVarLat = function( calib.x, calib.y, num.max.var.lat, centrar.datos ) {
+CalcularPRESSPorNumVarLat <- function( calib.x, calib.y, num.max.var.lat, centrar.datos ) {
 
 	# salida, lista de errores PRESS, de uno a var_lat_max
 	press.vals = numeric( num.max.var.lat )
@@ -86,7 +86,7 @@ CalcularPRESSPorNumVarLat = function( calib.x, calib.y, num.max.var.lat, centrar
 
 # devuelve la probablidad de obtener la estadística F
 # en función de F y los grados de libertad k1 y k2
-CalcularProbF = function( f, k1, k2 ) {
+CalcularProbF <- function( f, k1, k2 ) {
 	d1 = 0.0498673470
 	d2 = 0.0211410061
 	d3 = 0.0032776263
@@ -110,7 +110,7 @@ CalcularProbF = function( f, k1, k2 ) {
 }
 
 # calcula el número óptimo de variables latentes a utilizar entre 1 y var_lat_max
-CalcularNumOptVarLat = function( calib.x, calib.y, num.max.var.lat, centrar.datos ) {
+CalcularNumOptVarLat <- function( calib.x, calib.y, num.max.var.lat, centrar.datos ) {
 	# errores PRESS de distintos número de variables latentes
 	press.vals = CalcularPRESSPorNumVarLat( calib.x, calib.y, num.max.var.lat, centrar.datos )
 	# estadísticas F para los errores PRESS
@@ -125,7 +125,7 @@ CalcularNumOptVarLat = function( calib.x, calib.y, num.max.var.lat, centrar.dato
 	return(-1)
 }
 
-SuavizarSavitzkyGolay = function( espectro, orden.derivada, grado.polinomio, largo.ventana ) {
+SuavizarSavitzkyGolay <- function( espectro, orden.derivada, grado.polinomio, largo.ventana ) {
 	CalcularCoeficientesPolinomio <- function( orden.derivada, grado.polinomio, largo.ventana ) {
 		ventana <- c(1 : largo.ventana)
 		me <- (largo.ventana + 1) / 2
