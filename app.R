@@ -32,7 +32,7 @@ datosSalida$probFstat.variablesLatentes <- NULL
 datosSalida$concentracionesPredichas    <- NULL
 
 #defición de la interfaz gráfica
-ui = fluidPage( theme = shinytheme('darkly'),
+ui = fluidPage( #theme = shinytheme('darkly'),
 
 	headerPanel( 'Calibración Multivariada' ),
 	tabsetPanel(
@@ -74,6 +74,7 @@ ui = fluidPage( theme = shinytheme('darkly'),
 				numericInput( 'procesarSavitzkyGolay.ordenDerivada', 'Orden de derivada', min = 1, max = 3, value = 1 ),
 				numericInput( 'procesarSavitzkyGolay.gradoPolinomio', 'Grado del polinomio', min = 1, max = 5, value = 1 ),
 				numericInput( 'procesarSavitzkyGolay.largoVentana', 'Largo de la ventana', min = 1, max = 9, value = 1 ),
+				checkboxInput( 'procesarMSC', 'Corrección de Esparcimiento Multiplicativo' ),
 				# botón para realizar el preprocesamieto
 				actionButton( 'preprocesarDatos', 'Actualizar' )
 			),
@@ -269,6 +270,14 @@ server <- function( input, output ) {
 		if (!is.null(datosEntrada$prueba.x)) {
 			   prePro$prueba.x <<- datosEntrada$prueba.x
 		} else prePro$prueba.x <<- NULL
+
+		if (input$procesarMSC == TRUE) {
+			if (!is.null(prePro$calib.x) && !is.null(prePro$prueba.x)) {
+				outMSC <- ProcesarCorreccionEsparcimientoMult(calib.x, prueba.x)
+				prePro$calib.x  <<- outMSC[[1]]
+				prePro$prueba.x <<- outMSC[[2]]
+			}
+		}
 
 		if (input$procesarSavitzkyGolay == TRUE) {
 			if (!is.null(prePro$calib.x)) {

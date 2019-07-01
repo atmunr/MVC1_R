@@ -240,5 +240,5 @@ ProcesarCorreccionEsparcimientoMult <- function( calib.x, prueba.x ) {
 		prueba.x[,i] <- res[[2]]
 	}
 
-	return (calib.x, prueba.x)
+	return (list(calib.x, prueba.x))
 }
