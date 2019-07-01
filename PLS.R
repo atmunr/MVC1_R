@@ -1,8 +1,10 @@
+library('corpcor') # pseudoinversa
+
 # centra un vector
 CentrarVector <- function( vector ) {
 	vector.prom = mean(vector)
 	vector.cent = vector - vector.prom
-	return(list(vector.cent, vector.prom))
+	return (list(vector.cent, vector.prom))
 }
 
 # centra una matriz 2D por columnas
@@ -18,7 +20,7 @@ CentrarMatriz2DPorColumnas <- function( matriz ) {
 	for (i in 1 : ncol(matriz.cent)) {
 		matriz.cent[,i] <- matriz[,i] - colprom
 	}
-	return(list(matriz.cent, colprom))
+	return (list(matriz.cent, colprom))
 }
 
 # produce coeficientes de regresión
@@ -46,7 +48,7 @@ CalcularCoefRegrPLS <- function( calib.x, calib.y, nvl ) {
 	}
 
 	coef.regr <- W %*% solve(t(P) %*% W) %*% t(v)
-	return( coef.regr ) # coeficientes de regresión
+	return (coef.regr) # coeficientes de regresión
 
 }
 
@@ -91,7 +93,7 @@ CalcularPRESSPorNumVarLat <- function( calib.x, calib.y, nvl.max, centrar ) {
 		}
 	}
 
-	return( press.vals )
+	return (press.vals)
 
 }
 
@@ -115,7 +117,7 @@ CalcularProbF <- function( f, k1, k2 ) {
 	p <- 0.5 / (p ^ 16)
 	p <- (sign(z) * (p - 0.5)) + 0.5
 	p <- round(p * 1000 + 0.5) / 1000
-	return(1 - p)
+	return (1 - p)
 }
 
 # estima el número óptimo de variables latentes a usar
@@ -139,9 +141,9 @@ CalcularNumOptVarLat <- function( calib.x, calib.y, nvl.max, centrar ) {
 	# de variables latentes es el primero para el cual la probabilidad asociada
 	# es menor a 0.75 (Thomas y Haaland 1988)
 	for (i in 1 : length(p.vals)) {
-		if (p.vals[i] < 0.75) return(i)
+		if (p.vals[i] < 0.75) return (i)
 	}
-	return(-1)
+	return (-1)
 
 }
 
@@ -166,9 +168,9 @@ ProcesarSavitzkyGolay <- function( espec, ord, grad, vlen ) {
 		p <- matrix(ncol = 6) # ????????
 		if (ord == 0) { # eww
 			p <- c( med^0, med^1,   med^2,   med^3,    med^4,    med^5 )
-		} else if( ord == 1 ) {
+		} else if (ord == 1) {
 			p <- c(    0,      1, 2*med^1, 3*med^2,  4*med^3,  5*med^4 )
-		} else if( ord == 2 ) {
+		} else if (ord == 2) {
 			p <- c(    0,      0,       2, 6*med^1, 12*med^2, 20*med^3 )
 		}
 		p <- t(p)
@@ -208,5 +210,35 @@ ProcesarSavitzkyGolay <- function( espec, ord, grad, vlen ) {
 
 	}
 
-	return( espec.p )
+	return (espec.p)
+}
+
+# procesa los espectros por Corrección de Esparcimiento Mutiplicativo
+# calib.x  : espectros de calibrado
+# prueba.y : espectros de prueba
+ProcesarCorreccionEsparcimientoMult <- function( calib.x, prueba.x ) {
+
+	# procesa un espectro de prueba individualmente
+	ProcesarEspectro <- function( calib.x, espec ) {
+		espxcal <- matrix(rowMeans(calib.x), nrow = 1) - mean(calib.x)
+		espycal <- calib.x - mean(calib.x)
+		beta <- t(espycal) %*% pseudoinverse(espxcal, tol = sqrt(.Machine$double.eps))
+		alpha <- matrix(colMeans(calib.x), nrow = 1) - t(beta) * sum(matrix(rowMeans(calib.x))) / nrow(calib.x)
+		espynew <- espec - mean(calib.x)
+		betanew <- t(espynew) %*% pseudoinverse(espxcal)
+		alphanew <- mean(espec) - betanew * sum(matrix(rowMeans(calib.x))) / nrow(calib.x)
+		unos <- matrix(numeric(nrow(calib.x))+1,ncol=1)
+		calib.x.p <- (calib.x - unos %*% alpha) / (unos %*% t(beta))
+		espec.p <- (espec - unos %*% alphanew) / (unos %*% betanew)
+		return(list(calib.x.p, espec.p))
+	}
+
+	# procesa todos los espectros de prueba
+	for (i in 1 : ncol(prueba.x)) {
+		res <- ProcesarEspectro( calib.x, prueba.x[,i] )
+		calib.x <- res[[1]]
+		prueba.x[,i] <- res[[2]]
+	}
+
+	return (calib.x, prueba.x)
 }
