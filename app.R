@@ -32,7 +32,7 @@ datosSalida$probFstat.variablesLatentes <- NULL
 datosSalida$concentracionesPredichas    <- NULL
 
 #defición de la interfaz gráfica
-ui = fluidPage( #theme = shinytheme('darkly'),
+ui = fluidPage( theme = shinytheme('darkly'),
 
 	headerPanel( 'Calibración Multivariada' ),
 	tabsetPanel(
@@ -273,7 +273,8 @@ server <- function( input, output ) {
 
 		if (input$procesarMSC == TRUE) {
 			if (!is.null(prePro$calib.x) && !is.null(prePro$prueba.x)) {
-				outMSC <- ProcesarCorreccionEsparcimientoMult(calib.x, prueba.x)
+				outMSC <- ProcesarCorreccionEsparcimientoMult(
+					prePro$calib.x, prePro$prueba.x)
 				prePro$calib.x  <<- outMSC[[1]]
 				prePro$prueba.x <<- outMSC[[2]]
 			}
@@ -489,7 +490,6 @@ server <- function( input, output ) {
 
 	# visualizaciones de los datos estadísticos sobre la calidad de la prediccón
 	observe({
-
 		if (input$estad.mostrar.grafica == 'prueba.y.vs.concentPred') {
 			if (
 				is.null( datosSalida$concentracionesPredichas) ||
@@ -502,7 +502,6 @@ server <- function( input, output ) {
 				lines(1 : length(datosSalida$concentracionesPredichas))
 			})}
 		}
-
 	})
 
 }
