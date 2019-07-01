@@ -70,6 +70,10 @@ ui = fluidPage( theme = shinytheme('darkly'),
 			sidebarPanel(
 				# elección de métodos de preprocesado
 				checkboxInput( 'centrarDatos', 'Centrar Datos' ),
+				checkboxInput( 'suavizarSavitzkyGolay', 'Suavizado Savitzky Golay' ),
+				numericInput( 'suavizarSavitzkyGolay.ordenDerivada', 'Orden de derivada', min = 1, max = 3, value = 1 ),
+				numericInput( 'suavizarSavitzkyGolay.gradoPolinomio', 'Grado del polinomio', min = 1, max = 5, value = 1 ),
+				numericInput( 'suavizarSavitzkyGolay.largoVentana', 'Largo de la ventana', min = 1, max = 9, value = 1 ),
 				# botón para realizar el preprocesamieto
 				actionButton( 'preprocesarDatos', 'Actualizar' )
 			),
@@ -138,6 +142,36 @@ ui = fluidPage( theme = shinytheme('darkly'),
 				)), plotOutput( 'datosSalida.mostrar.grafica.figura' )
 				)
 			))
+  		),
+		# estadísticas sobre la calidad de la predicción
+		tabPanel( 'Estadísticas',
+			sidebarPanel(
+				tags$b('Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+				sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'),
+				tags$hr(),
+				tags$b('Ut enim ad minim veniam, quis nostrud exercitation ullamco
+				laboris nisi ut aliquip ex ea commodo consequat.'),
+				tags$hr(),
+				tags$b('Duis aute irure dolor in reprehenderit in voluptate velit
+				esse cillum dolore eu fugiat nulla pariatur.'),
+				tags$hr(),
+				tags$b('Excepteur sint occaecat cupidatat non proident, sunt in
+				culpa qui officia deserunt mollit anim id est laborum.')
+			),
+			mainPanel(#tabsetPanel(
+				 # mostrar estadísticas en forma de tabla
+				#tabPanel( 'Datos crudos',
+				#selectInput( 'estad.mostrar.crudo', 'Mostrar:', c(
+				#
+				#)), tableOutput( 'estad.mostrar.crudo.figura' )
+				#),
+				 # mostrar estadísticas en forma de gráfica
+				#tabPanel( 'Gráfica',
+ 				selectInput( 'estad.mostrar.grafica', 'Mostrar:', c(
+ 				'Concentraciones esperadas y predichas' = 'prueba.y.vs.concentPred'
+				)), plotOutput( 'estad.mostrar.grafica' )
+ 				#)
+			)#)
   		)
 	)
 )
@@ -206,14 +240,15 @@ server <- function( input, output ) {
 				'calib.x' = , 'prueba.x' = {
 					matplot( 1 : nrow(mostrar.grafica.val), mostrar.grafica.val,
    						xlab = 'Espectro', ylab = 'Absorbancia',
-   						lwd = 1.5, type = 'l' )},
+   						lwd = 1.5, type = 'l' ) },
 				# como las concentraciones se almacenan en una matriz (a pesar
 				# de ser una sola columna) se llama a la función plot sobre
 				# la primer columna
 				'calib.y' = , 'prueba.y' = {
 					plot( 1 : nrow(mostrar.grafica.val), mostrar.grafica.val[,1],
    						xlab = 'N° de Muestra', ylab = 'Contenido',
-   						bg = c( 1 : nrow(mostrar.grafica.val) ), pch = 21 )}
+   						bg = 'black', pch = 20, cex = 1.3 )
+					lines(mostrar.grafica.val) }
 			)
 		})}
 	})
@@ -234,6 +269,21 @@ server <- function( input, output ) {
 		if (!is.null(datosEntrada$prueba.x)) {
 			   prePro$prueba.x <<- datosEntrada$prueba.x
 		} else prePro$prueba.x <<- NULL
+
+		if (input$suavizarSavitzkyGolay == TRUE) {
+			if (!is.null(prePro$calib.x)) {
+				prePro$calib.x <<- SuavizarSavitzkyGolay( prePro$calib.x,
+					input$suavizarSavitzkyGolay.ordenDerivada,
+					input$suavizarSavitzkyGolay.gradoPolinomio,
+					input$suavizarSavitzkyGolay.largoVentana)
+			}
+			if (!is.null(prePro$prueba.x)) {
+				prePro$prueba.x <<- SuavizarSavitzkyGolay( prePro$prueba.x,
+					input$suavizarSavitzkyGolay.ordenDerivada,
+					input$suavizarSavitzkyGolay.gradoPolinomio,
+					input$suavizarSavitzkyGolay.largoVentana)
+			}
+		}
 
 		# centrado de los datos
 		# (sólo se puede hacer algún centrado si existen los espectros de calibración)
@@ -267,6 +317,7 @@ server <- function( input, output ) {
 				}
 			}
 		}
+
 	})
 
 	# visualizaciones de los datos preprocesados
@@ -303,14 +354,15 @@ server <- function( input, output ) {
 				'calib.x' = , 'prueba.x' = {
 					matplot( 1 : nrow(mostrar.grafica.val), mostrar.grafica.val,
    						xlab = 'Espectro', ylab = 'Absorbancia',
-   						lwd = 1.5, type = 'l' )},
+   						lwd = 1.5, type = 'l' ) },
 				# como las concentraciones se almacenan en una matriz (a pesar
 				# de ser una sola columna) se llama a la función plot sobre
 				# la primer columna
 				'calib.y' = {
 					plot( 1 : nrow(mostrar.grafica.val), mostrar.grafica.val[,1],
    						xlab = 'N° de Muestra', ylab = 'Contenido',
-   						bg = c( 1 : nrow(mostrar.grafica.val) ), pch = 21 )}
+   						bg = 'black', pch = 20, cex = 1.3 )
+					lines(mostrar.grafica.val) }
 			)
 		})}
 	})
@@ -347,23 +399,25 @@ server <- function( input, output ) {
 	(!is.null(prePro$calib.x) && !is.null(prePro$calib.y)) {
 		# si se centraron los datos, se tienen que decentralizar antes de
 		# realizar la validacíon del modelo
+		calib.x <- prePro$calib.x
+		calib.y <- prePro$calib.y
 		if (input$centrarDatos == TRUE) {
 			# decentraliza calib.x
  			for ( i in 1 : ncol(prePro$calib.x) ) {
- 				prePro$calib.x[,i] <<- prePro$calib.x[,i] + prePro$calib.x.espectroPromedio
+ 				calib.x[,i] <- prePro$calib.x[,i] + prePro$calib.x.espectroPromedio
  			}
 			# decentraliza calib.y
-			prePro$calib.y <<- prePro$calib.y + prePro$calib.y.valorPromedio
+			calib.y <- prePro$calib.y + prePro$calib.y.valorPromedio
  		}
 		# calcula los errores PRESS por número de variables latentes
 		datosSalida$press.variablesLatentes <<- as.matrix(CalcularPRESSPorNumVarLat(
-			prePro$calib.x, prePro$calib.y, input$numMaxVariablesLatentes, centrar.datos = input$centrarDatos  ))
+			calib.x, calib.y, input$numMaxVariablesLatentes, centrar.datos = input$centrarDatos  ))
 		# calcula las estadísticas F producidas con los valores PRESS
 		datosSalida$fstat.variablesLatentes <<- datosSalida$press.variablesLatentes /
 			datosSalida$press.variablesLatentes[ length(datosSalida$press.variablesLatentes) ]
 		# calcula las probabilidades de obtener cada estadística F
 		datosSalida$probFstat.variablesLatentes <<- as.matrix(CalcularProbF(
-			datosSalida$fstat.variablesLatentes, ncol( prePro$calib.x ), ncol( prePro$calib.x ) ))
+			datosSalida$fstat.variablesLatentes, ncol( calib.x ), ncol( calib.x ) ))
 
 	}})
 
@@ -405,19 +459,41 @@ server <- function( input, output ) {
 				# como todos estos valores se almacenan en matrices (a pesar
 				# de ser sólo columnas) se llama a la función plot sobre
 				# la primer columna de cada uno
-				'coeficientesRegresion' = , 'press.variablesLatentes' = ,
-				'fstat.variablesLatentes' = , 'probFstat.variablesLatentes' = {
+				'coeficientesRegresion' = {
 					plot( 1 : nrow(mostrar.grafica.val), mostrar.grafica.val[,1],
 	   					xlab = 'Número', ylab = 'Valor',
-	   					lwd = 1.5, type = 'l'
-				)},
+	   					lwd = 1.5, type = 'l' ) },
+				'press.variablesLatentes' = , 'fstat.variablesLatentes' = ,
+				'probFstat.variablesLatentes' = {
+					plot( 1 : nrow(mostrar.grafica.val), mostrar.grafica.val[,1],
+	   					xlab = 'Número', ylab = 'Valor',
+					bg = 'black', pch = 20, cex = 1.3 )
+					lines(mostrar.grafica.val) },
 				'concentracionesPredichas' = , 'prueba.y' = {
 					plot( 1 : nrow(mostrar.grafica.val), mostrar.grafica.val[,1],
    						xlab = 'N° de Muestra', ylab = 'Contenido',
-   						bg = c( 1 : nrow(mostrar.grafica.val) ), pch = 21
-				)}
+   						bg = 'black', pch = 20, cex = 1.3 )
+					lines(mostrar.grafica.val) }
 			)
 		})}
+	})
+
+	# visualizaciones de los datos estadísticos sobre la calidad de la prediccón
+	observe({
+
+		if (input$estad.mostrar.grafica == 'prueba.y.vs.concentPred') {
+			if (
+				is.null( datosSalida$concentracionesPredichas) ||
+			    is.null(datosEntrada$prueba.y)
+			) {    output$estad.mostrar.grafica <- NULL }
+			else { output$estad.mostrar.grafica <- renderPlot({
+				plot( datosSalida$concentracionesPredichas, datosEntrada$prueba.y,
+ 					xlab = 'Concentraciones Predichas', ylab = 'Valores Nominales',
+				 	bg = 'black', pch = 20, cex = 1.3 )
+				lines(1 : length(datosSalida$concentracionesPredichas))
+			})}
+		}
+
 	})
 
 }

@@ -1,12 +1,12 @@
 # centra un vector
-CentrarVector = function( vector ) {
+CentrarVector <- function( vector ) {
 	vector.prom = mean( vector )
 	vector.cent = vector - vector.prom
 	return(list( vector.cent, vector.prom ))
 }
 
 # centra una matriz 2D por columnas
-CentrarMatriz2DPorColumnas = function( matriz ) {
+CentrarMatriz2DPorColumnas <- function( matriz ) {
 	# columna promedio de M: el i-ésimo valor de column_prom es el promedio de
 	# los valores de la i-ésima fila de M
 	colprom = matrix( nrow = nrow( matriz ) )
@@ -24,7 +24,7 @@ CentrarMatriz2DPorColumnas = function( matriz ) {
 # produce coeficientes de regresión
 # para unas muestras de calibrado y un número variables latentes
 # usando el modelo PLS
-CalcularCoefRegrPLS = function( calib.x, calib.y, num.var.lat ) {
+CalcularCoefRegrPLS <- function( calib.x, calib.y, num.var.lat ) {
 
 	I = ncol( calib.x ) # n° de muestras en Xcal
 	J = nrow( calib.x ) # orden de una muestra
@@ -49,7 +49,7 @@ CalcularCoefRegrPLS = function( calib.x, calib.y, num.var.lat ) {
 
 # prueba todos los números de variables latentes desde 1 a var_lat_max
 # y devuelve su error estadístico PRESS por validación cruzada
-CalcularPRESSPorNumVarLat = function( calib.x, calib.y, num.max.var.lat, centrar.datos ) {
+CalcularPRESSPorNumVarLat <- function( calib.x, calib.y, num.max.var.lat, centrar.datos ) {
 
 	# salida, lista de errores PRESS, de uno a var_lat_max
 	press.vals = numeric( num.max.var.lat )
@@ -86,7 +86,7 @@ CalcularPRESSPorNumVarLat = function( calib.x, calib.y, num.max.var.lat, centrar
 
 # devuelve la probablidad de obtener la estadística F
 # en función de F y los grados de libertad k1 y k2
-CalcularProbF = function( f, k1, k2 ) {
+CalcularProbF <- function( f, k1, k2 ) {
 	d1 = 0.0498673470
 	d2 = 0.0211410061
 	d3 = 0.0032776263
@@ -110,7 +110,7 @@ CalcularProbF = function( f, k1, k2 ) {
 }
 
 # calcula el número óptimo de variables latentes a utilizar entre 1 y var_lat_max
-CalcularNumOptVarLat = function( calib.x, calib.y, num.max.var.lat, centrar.datos ) {
+CalcularNumOptVarLat <- function( calib.x, calib.y, num.max.var.lat, centrar.datos ) {
 	# errores PRESS de distintos número de variables latentes
 	press.vals = CalcularPRESSPorNumVarLat( calib.x, calib.y, num.max.var.lat, centrar.datos )
 	# estadísticas F para los errores PRESS
@@ -125,16 +125,15 @@ CalcularNumOptVarLat = function( calib.x, calib.y, num.max.var.lat, centrar.dato
 	return(-1)
 }
 
-Preprocesar.SavitzkyGolay = function( espectro, orden.derivada, grado.polinomio, largo.ventana ) {
-
+SuavizarSavitzkyGolay <- function( espectro, orden.derivada, grado.polinomio, largo.ventana ) {
 	CalcularCoeficientesPolinomio <- function( orden.derivada, grado.polinomio, largo.ventana ) {
-		ventana <- matrix( nrow = 1, ncol = largo.ventana )
+		ventana <- c(1 : largo.ventana)
 		me <- (largo.ventana + 1) / 2
 		mat <- matrix( nrow = 6, ncol = largo.ventana )
 		for( i in 1 : nrow(mat) ) {
 			mat[i,] <- ventana ^ (i-1)
 		}
-		p <- numeric( 6 )
+		p <- matrix( ncol = 6 )
 		if( orden.derivada == 0 ) {
 			p <- c( me^0, me^1,   me^2,   me^3,    me^4,    me^5 )
 		} else if( orden.derivada == 1 ) {
@@ -142,18 +141,28 @@ Preprocesar.SavitzkyGolay = function( espectro, orden.derivada, grado.polinomio,
 		} else if( orden.derivada == 2 ) {
 			p <- c(    0,    0,      2, 6*me^1, 12*me^2, 20*me^3 )
 		}
-		return( solve(mat[ 1:grado.polinomio+1, ]) * p[ 1:grado.polinomio+1, ] )
+		p <- t(p)
+		p <- t(p)
+		p <- p[ 1 : (grado.polinomio+1) ]
+		aux <- t(mat[ 1 : (grado.polinomio+1) , ])
+		aux <- t(solve(t(aux) %*% aux) %*% t(aux))
+		coeficientes <- matrix( nrow = largo.ventana )
+		for (i in 1 : nrow(coeficientes)) {
+			coeficientes[i,] <- aux[i,] %*% p
+		}
+		return (coeficientes)
 	}
-	coeficientes.polinomio <- CalcularCoeficientesPolinomio(
-		orden.derivada, grado.polinomio, largo.ventana )
-
-	espectro.procesado <- matrix( nrow = nrow(espectro) - largo.ventana + 1, ncol = ncol(espectro)  )
-
-	z <- numeric( nrow(espectro.procesado) - largo.ventana - 1 )
-	for(     i in 1 : ncol(espectro.procesado)                      ) {
-		for( j in 1 : nrow(espectro.procesado) - largo.ventana - 1  ) {
-			data <- espectro[ j:j+largo.ventana-1, i ]
-			z[i] <- t(coeficientes.polinomio) * data
+	coeficientes <- CalcularCoeficientesPolinomio(
+		orden.derivada, grado.polinomio, largo.ventana)
+	espectro.procesado <- matrix(
+		nrow = nrow(espectro) - largo.ventana - 1,
+		ncol = ncol(espectro)
+	)
+	for (i in 1 : ncol(espectro.procesado)) {
+		z <- numeric( nrow(espectro.procesado) )
+		for (j in 1 : nrow(espectro.procesado) ) {
+			data <- espectro[ j : (j+largo.ventana-1), i ]
+			z[j] <- t(coeficientes) %*% data
 		}
 		espectro.procesado[,i] <- t(z)
 	}
