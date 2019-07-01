@@ -411,7 +411,7 @@ server <- function( input, output ) {
  		}
 		# calcula los errores PRESS por número de variables latentes
 		datosSalida$press.variablesLatentes <<- as.matrix(CalcularPRESSPorNumVarLat(
-			calib.x, calib.y, input$numMaxVariablesLatentes, centrar.datos = input$centrarDatos  ))
+			calib.x, calib.y, input$numMaxVariablesLatentes, centrar = input$centrarDatos  ))
 		# calcula las estadísticas F producidas con los valores PRESS
 		datosSalida$fstat.variablesLatentes <<- datosSalida$press.variablesLatentes /
 			datosSalida$press.variablesLatentes[ length(datosSalida$press.variablesLatentes) ]

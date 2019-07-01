@@ -140,7 +140,8 @@ CalcularNumOptVarLat <- function( calib.x, calib.y, nvl.max, centrar ) {
 	# es menor a 0.75 (Thomas y Haaland 1988)
 	for (i in 1 : length(p.vals)) {
 		if (p.vals[i] < 0.75) return(i)
-	} return(-1)
+	}
+	return(-1)
 
 }
 
@@ -159,7 +160,7 @@ ProcesarSavitzkyGolay <- function( espec, ord, grad, vlen ) {
 
 		mat <- matrix(nrow = 6, ncol = vlen) # ???
 		for( i in 1 : nrow(mat) ) {
-			mat[i,] <- ventana ^ (i-1)
+			mat[i,] <- vent ^ (i-1)
 		}
 
 		p <- matrix(ncol = 6) # ????????
@@ -183,7 +184,8 @@ ProcesarSavitzkyGolay <- function( espec, ord, grad, vlen ) {
 		}
 
 		return (coeficientes)
-	} coeficientes <- CalcularCoeficientesPolinomio(ord, grad, vlen)
+	}
+	coeficientes <- CalcularCoeficientesPolinomio(ord, grad, vlen)
 
 	espec.p <- matrix( # valor de retorno: espectros procesados
 		nrow = nrow(espec) - vlen - 1,
