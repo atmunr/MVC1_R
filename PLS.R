@@ -242,3 +242,29 @@ ProcesarCorreccionEsparcimientoMult <- function( calib.x, prueba.x ) {
 
 	return (list(calib.x, prueba.x))
 }
+
+# toma un grupo espectros y deja solamente los valores de un subconjunto de
+# los sensores, expresados como una lista de intervalos cerrados ( [a,b] )
+# intervalos: vector de vectores
+FiltrarSensores <- function( espectros, intervalos ) {
+
+	nsensores <- 0 # número de sensores los espectros filtrados
+	for (intervalo in intervalos) {
+		nsensores <- nsensores + (intervalo[2] - intervalo[1] + 1)
+	}
+
+	# valor de retorno: espectros con los sensores filtrados
+	espec.filt  <- matrix(nrow = nsensores, ncol = ncol(espectros))
+
+	for (i in 1 : ncol(datosEntrada$calib.x)) { # filtrar cada espectro
+		k <- 1 # k-ésimo sensor en espec.filt
+		for (intervalo in intervalos) {
+			for (j in intervalo[1] : intervalo[2]) {
+				espec.filt[k,i] <- espectros[j,i]
+				k <- k + 1
+			}
+		}
+	}
+	return (espec.filt)
+
+}

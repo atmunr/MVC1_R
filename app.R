@@ -22,7 +22,7 @@ prePro$calib.y.valorPromedio <- NULL
  # resultados de la calibración multivariada
 datosSalida <- reactiveValues()
 datosSalida$coeficientesRegresion       <- NULL # coeficientes de regresión
- # error estadístico PRESS para cada número de variables latentes<
+ # error estadístico PRESS para cada número de variables latentes
 datosSalida$press.variablesLatentes     <- NULL
  # estadística F producida con los valores PRESS para cada número de variables latentes
 datosSalida$fstat.variablesLatentes     <- NULL
@@ -32,18 +32,20 @@ datosSalida$probFstat.variablesLatentes <- NULL
 datosSalida$concentracionesPredichas    <- NULL
 
 #defición de la interfaz gráfica
-ui = fluidPage( theme = shinytheme('darkly'),
+ui = fluidPage( #theme = shinytheme('darkly'),
 
 	headerPanel( 'Calibración Multivariada' ),
 	tabsetPanel(
 
-		# sección de ingreso de datos
+		# sección de ingreso de datos y elección de sensores
 		tabPanel( 'Datos de entrada',
 			sidebarPanel( # ingreso de archivos de entrada
-				fileInput(  'calib.x' , 'Calibración X' ),
-            	fileInput(  'calib.y' , 'Calibración Y' ),
+				fileInput( 'calib.x'  , 'Calibración X' ),
+            	fileInput( 'calib.y'  , 'Calibración Y' ),
             	fileInput( 'prueba.x' ,      'Prueba X' ),
-				fileInput( 'prueba.y' ,      'Prueba Y' )
+				fileInput( 'prueba.y' ,      'Prueba Y' ),
+				textInput( 'elegirSensores', 'Sensores' ),
+				actionButton('elegirSensores.aplicar', 'Aplicar Cambios' )
 			),
 			mainPanel(tabsetPanel( # mostrar datos en forma de tabla
 				tabPanel( 'Datos crudos',
@@ -180,8 +182,7 @@ ui = fluidPage( theme = shinytheme('darkly'),
 # defición del código de servidor
 server <- function( input, output ) {
 
-	# carga de datos de entrada y
-	# creación de sus visualizaciones
+	# carga de datos de entrada
 	observe({
 		# asignación de valores para los datos de entrada:
 		# leer los archivos de entrada y convertirlos de tablas a matrices
@@ -204,6 +205,26 @@ server <- function( input, output ) {
 			   datosEntrada$prueba.y <<- as.matrix(read.table((input$prueba.y)$datapath))
 		} else datosEntrada$prueba.y <<- NULL
 
+	})
+
+	# elección de sensores
+	observeEvent( input$elegirSensores.aplicar, {
+		V <- input$elegirSensores
+		V <- strsplit(V, split = " ")
+		V <- V[[1]]
+		V <- strtoi(V)
+		V <- split(V, ceiling(seq_along(V)/2))
+
+		if (!is.null(datosEntrada$calib.x)) {
+			datosEntrada$calib.x  <<- FiltrarSensores(datosEntrada$calib.x,  V)
+		}
+		if (!is.null(datosEntrada$prueba.x)) {
+			datosEntrada$prueba.x <<- FiltrarSensores(datosEntrada$prueba.x, V)
+		}
+	})
+
+	# visualizaciones de los datos ingresados
+	observe({
 		# visualizacion en tabla:
 		# con la opción elegida en el widget datosEntrada.mostrar.crudo
 		# se elige el valor correspondiente para pasar a renderTable()
@@ -378,10 +399,7 @@ server <- function( input, output ) {
 	})
 
 	# construcción del modelo con los datos de preprocesados y
-	# predicción de las concentraciones:
-	# los coeficientes de regresión se pueden calcular sólo si están definidos
-	# calib.x y calib.y, y
-	# las concentraciones predichas sólo si existen calib.x, calib.y y prueba.x
+	# predicción de las concentraciones
 	observeEvent( input$construirModelo, { if
 	(!is.null(prePro$calib.x) && !is.null(prePro$calib.y)) {
 		# obtiene los coeficientes como una matriz columna
