@@ -109,7 +109,7 @@ PrePro.FiltrarSensores <- function( espectros, intervalos ) {
 	# valor de retorno: espectros con los sensores filtrados
 	espec.filt  <- matrix(nrow = nsensores, ncol = ncol(espectros))
 
-	for (i in 1 : ncol(datosEntrada$calib.x)) { # filtrar cada espectro
+	for (i in 1 : ncol(espectros)) { # filtrar cada espectro
 		k <- 1 # k-ésimo sensor en espec.filt
 		for (intervalo in intervalos) {
 			for (j in intervalo[1] : intervalo[2]) {

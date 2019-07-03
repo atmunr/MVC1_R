@@ -4,36 +4,36 @@ source("PLS.R")
 source("preprocesar.R")
 
  # datos ingresados al programa
-datosEntrada <- reactiveValues()
-datosEntrada$calib.x  <- NULL # espectros de calibración
-datosEntrada$calib.y  <- NULL # concentraciones de calibración
-datosEntrada$prueba.x <- NULL # espectros de prueba
-datosEntrada$prueba.y <- NULL # concentraciones de prueba
+INPUT <- reactiveValues()
+INPUT$calib.x  <- NULL # espectros de calibración
+INPUT$calib.y  <- NULL # concentraciones de calibración
+INPUT$prueba.x <- NULL # espectros de prueba
+INPUT$prueba.y <- NULL # concentraciones de prueba
 
  # datos ingresados, luego de ser preprocesados
-prePro <- reactiveValues()
-prePro$calib.x         <- NULL # espectros de calibración preprocesados
-prePro$calib.y         <- NULL # concentraciones de calibración preprocesadas
-prePro$prueba.x        <- NULL # espectros de prueba preprocesados
+PREPRO <- reactiveValues()
+PREPRO$calib.x         <- NULL # espectros de calibración preprocesados
+PREPRO$calib.y         <- NULL # concentraciones de calibración preprocesadas
+PREPRO$prueba.x        <- NULL # espectros de prueba preprocesados
  # si se centran los datos, el promedio de los espectros de calibración
-prePro$calib.x.espectroPromedio <- NULL
+PREPRO$calib.x.especProm <- NULL
  # si se centran los datos, el promedio de las concentraciones de calibración
-prePro$calib.y.valorPromedio <- NULL
+PREPRO$calib.y.concentProm <- NULL
 
  # resultados de la calibración multivariada
-datosSalida <- reactiveValues()
-datosSalida$coeficientesRegresion       <- NULL # coeficientes de regresión
- # error estadístico PRESS para cada número de variables latentes
-datosSalida$press.variablesLatentes     <- NULL
- # estadística F producida con los valores PRESS para cada número de variables latentes
-datosSalida$fstat.variablesLatentes     <- NULL
- # probabilidad de obtener cada estadística F
-datosSalida$probFstat.variablesLatentes <- NULL
+OUTPUT <- reactiveValues()
+OUTPUT$coefRegr       <- NULL # coeficientes de regresión
+ # error ESTADístico PRESS para cada número de variables latentes
+OUTPUT$press.nvl     <- NULL
+ # ESTADística F producida con los valores PRESS para cada número de variables latentes
+OUTPUT$fstat.nvl     <- NULL
+ # probabilidad de obtener cada ESTADística F
+OUTPUT$probFstat.nvl <- NULL
  # las concentraciones que predice la calibración multivariada
-datosSalida$concentracionesPredichas    <- NULL
+OUTPUT$concentPred    <- NULL
 
-#defición de la interfaz gráfica
-ui = fluidPage( #theme = shinytheme('darkly'),
+# defición de la interfaz gráfica
+ui <- fluidPage( #theme = shinytheme('darkly'),
 
 	headerPanel( 'Calibración Multivariada' ),
 	tabsetPanel(
@@ -45,25 +45,25 @@ ui = fluidPage( #theme = shinytheme('darkly'),
             	fileInput( 'calib.y'  , 'Calibración Y' ),
             	fileInput( 'prueba.x' ,      'Prueba X' ),
 				fileInput( 'prueba.y' ,      'Prueba Y' ),
-				textInput( 'elegirSensores', 'Sensores' ),
-				actionButton('elegirSensores.aplicar', 'Aplicar Cambios' )
+				textInput( 'INPUT.elegirSensores', 'Sensores' ),
+				actionButton('INPUT.elegirSensores.aplicar', 'Aplicar Cambios' )
 			),
 			mainPanel(tabsetPanel( # mostrar datos en forma de tabla
 				tabPanel( 'Datos crudos',
-				selectInput( 'datosEntrada.mostrar.crudo', 'Mostrar:', c(
+				selectInput( 'INPUT.mostrar.crudo', 'Mostrar:', c(
 				'Calibración X' =  'calib.x',
 				'Calibración Y' =  'calib.y',
 					 'Prueba X' = 'prueba.x',
 					 'Prueba Y' = 'prueba.y'
-				 )), tableOutput( 'datosEntrada.mostrar.crudo.figura' )
+				 )), tableOutput( 'INPUT.mostrar.crudo.figura' )
 				),
 				tabPanel( 'Gráfica', # mostrar datos como una gráfica
-				selectInput( 'datosEntrada.mostrar.grafica', 'Mostrar:', c(
+				selectInput( 'INPUT.mostrar.grafica', 'Mostrar:', c(
 				'Calibración X' =  'calib.x',
 				'Calibración Y' =  'calib.y',
 					 'Prueba X' = 'prueba.x',
 					 'Prueba Y' = 'prueba.y'
-				)), plotOutput( 'datosEntrada.mostrar.grafica.figura' )
+				)), plotOutput( 'INPUT.mostrar.grafica.figura' )
 				)
 			))
   		),
@@ -72,31 +72,34 @@ ui = fluidPage( #theme = shinytheme('darkly'),
 		tabPanel( 'Preprocesamiento',
 			sidebarPanel(
 				# elección de métodos de preprocesado
-				checkboxInput( 'centrarDatos', 'Centrar Datos' ),
-				checkboxInput( 'procesarSavitzkyGolay', 'Suavizado Savitzky Golay' ),
-				numericInput( 'procesarSavitzkyGolay.ordenDerivada', 'Orden de derivada', min = 1, max = 3, value = 1 ),
-				numericInput( 'procesarSavitzkyGolay.gradoPolinomio', 'Grado del polinomio', min = 1, max = 5, value = 1 ),
-				numericInput( 'procesarSavitzkyGolay.largoVentana', 'Largo de la ventana', min = 1, max = 9, value = 1 ),
-				checkboxInput( 'procesarMSC', 'Corrección de Esparcimiento Multiplicativo' ),
+				checkboxInput( 'PREPRO.centrar', 'Centrar Datos' ),
+				checkboxInput( 'PREPRO.SavitzkyGolay', 'Suavizado Savitzky Golay' ),
+				numericInput( 'PREPRO.SavitzkyGolay.ord', 'Orden de derivada',
+					min = 0, max = 2, value = 0 ),
+				numericInput( 'PREPRO.SavitzkyGolay.grad', 'Grado del polinomio',
+					min = 0, max = 5, value = 1 ),
+				numericInput( 'PREPRO.SavitzkyGolay.vlen', 'Largo de la ventana',
+					min = 0, max = 9, value = 1 ),
+				checkboxInput( 'PREPRO.MSC', 'Corrección de Esparcimiento Multiplicativo' ),
 				# botón para realizar el preprocesamieto
-				actionButton( 'preprocesarDatos', 'Actualizar' )
+				actionButton( 'PREPRO.aplicar', 'Actualizar' )
 			),
 			mainPanel(tabsetPanel(
 				 # mostrar datos procesados en forma de tabla
 				tabPanel( 'Datos crudos',
-				selectInput( 'prePro.mostrar.crudo', 'Mostrar:', c(
+				selectInput( 'PREPRO.mostrar.crudo', 'Mostrar:', c(
 				'Calibración X' =  'calib.x',
 				'Calibración Y' =  'calib.y',
 					 'Prueba X' = 'prueba.x'
-				)), tableOutput( 'prePro.mostrar.crudo.figura' )
+				)), tableOutput( 'PREPRO.mostrar.crudo.figura' )
 				),
 				 # mostrar datos procesados en forma de gráfica
 				tabPanel( 'Gráfica',
-				selectInput( 'prePro.mostrar.grafica', 'Mostrar:', c(
+				selectInput( 'PREPRO.mostrar.grafica', 'Mostrar:', c(
 				'Calibración X' =  'calib.x',
 				'Calibración Y' =  'calib.y',
 					 'Prueba X' = 'prueba.x'
-				)), plotOutput( 'prePro.mostrar.grafica.figura' )
+				)), plotOutput( 'PREPRO.mostrar.grafica.figura' )
 				)
 			))
   		),
@@ -106,44 +109,44 @@ ui = fluidPage( #theme = shinytheme('darkly'),
 			sidebarPanel(
 				tags$b( 'Construcción del modelo' ),
 				 # elección del algoritmo
-            	selectInput( 'algoritmo', 'Algoritmo:',
-                	c('PLS' = 'pls'
+            	selectInput( 'OUTPUT.alg', 'Algoritmo:',
+                	c('PLS-1' = 'PLS1'
             	)),
 				# elección del número de variables latentes
-            	numericInput( 'numVariablesLatentes', 'Variables Latentes',
+            	numericInput( 'OUTPUT.nvl', 'Variables Latentes',
                 	value = 1, min = 1 ),
 				# construcción del modelo
-            	actionButton( 'construirModelo', 'Construir modelo' ),
+            	actionButton( 'OUTPUT.construirModelo', 'Construir modelo' ),
 				tags$hr(), tags$b( 'Validación del modelo '),
 				# elección del número máximo de variables latentes para la
 				# validación
-				numericInput( 'numMaxVariablesLatentes', 'Número Máximo de Variables Latentes',
+				numericInput( 'OUTPUT.nvl.max', 'Número Máximo de Variables Latentes',
                 	value = 1, min = 1 ),
 				# validación del modelo
-				actionButton( 'validarModelo', 'Validar modelo' )
+				actionButton( 'OUTPUT.validarModelo', 'Validar modelo' )
 			),
 			mainPanel(tabsetPanel(
 				 # mostrar resultados de predicción en forma de tabla
 				tabPanel( 'Datos crudos',
-				selectInput( 'datosSalida.mostrar.crudo', 'Mostrar:', c(
-				'Coeficientes de Regresión' =  'coeficientesRegresion',
-				'PRESS por Número de Variables Latentes' =  'press.variablesLatentes',
-				'Estadística F por Número de Variables Latentes' = 'fstat.variablesLatentes',
-				'Probabilidad de la Estadística F por Número de Variables Latentes' = 'probFstat.variablesLatentes',
-				'Concentraciones Predichas' = 'concentracionesPredichas',
+				selectInput( 'OUTPUT.mostrar.crudo', 'Mostrar:', c(
+				'Coeficientes de Regresión' = 'coefRegr',
+				'PRESS por Número de Variables Latentes' =  'press.nvl',
+				'Estadística F por Número de Variables Latentes' = 'fstat.nvl',
+				'Probabilidad de la Estadística F por Número de Variables Latentes' = 'probFstat.nvl',
+				'Concentraciones Predichas' = 'concentPred',
 				'Prueba Y' = 'prueba.y'
-				)), tableOutput( 'datosSalida.mostrar.crudo.figura' )
+				)), tableOutput( 'OUTPUT.mostrar.crudo.figura' )
 				),
 				 # mostrar resultados de predicción en forma de gráfica
 				tabPanel( 'Gráfica',
-				selectInput( 'datosSalida.mostrar.grafica', 'Mostrar:', c(
-				'Coeficientes de Regresión' =  'coeficientesRegresion',
-				'PRESS por Número de Variables Latentes' =  'press.variablesLatentes',
-				'Estadística F por Número de Variables Latentes' = 'fstat.variablesLatentes',
-				'Probabilidad de la Estadística F por Número de Variables Latentes' = 'probFstat.variablesLatentes',
-				'Concentraciones Predichas' = 'concentracionesPredichas',
+				selectInput( 'OUTPUT.mostrar.grafica', 'Mostrar:', c(
+				'Coeficientes de Regresión' =  'coefRegr',
+				'PRESS por Número de Variables Latentes' =  'press.nvl',
+				'Estadística F por Número de Variables Latentes' = 'fstat.nvl',
+				'Probabilidad de la Estadística F por Número de Variables Latentes' = 'probFstat.nvl',
+				'Concentraciones Predichas' = 'concentPred',
 				'Prueba Y' = 'prueba.y'
-				)), plotOutput( 'datosSalida.mostrar.grafica.figura' )
+				)), plotOutput( 'OUTPUT.mostrar.grafica.figura' )
 				)
 			))
   		),
@@ -162,20 +165,11 @@ ui = fluidPage( #theme = shinytheme('darkly'),
 				tags$b('Excepteur sint occaecat cupidatat non proident, sunt in
 				culpa qui officia deserunt mollit anim id est laborum.')
 			),
-			mainPanel(#tabsetPanel(
-				 # mostrar estadísticas en forma de tabla
-				#tabPanel( 'Datos crudos',
-				#selectInput( 'estad.mostrar.crudo', 'Mostrar:', c(
-				#
-				#)), tableOutput( 'estad.mostrar.crudo.figura' )
-				#),
-				 # mostrar estadísticas en forma de gráfica
-				#tabPanel( 'Gráfica',
- 				selectInput( 'estad.mostrar.grafica', 'Mostrar:', c(
+			mainPanel(
+ 				selectInput( 'ESTAD.mostrar.grafica', 'Mostrar:', c(
  				'Concentraciones esperadas y predichas' = 'prueba.y.vs.concentPred'
-				)), plotOutput( 'estad.mostrar.grafica' )
- 				#)
-			)#)
+				)), plotOutput( 'ESTAD.mostrar.grafica' )
+			)
   		)
 	)
 )
@@ -191,78 +185,78 @@ server <- function( input, output ) {
 		# si no se ingresó ningún archivo, el valor correspondiente será NULL
 
 		if (!is.null( input$calib.x )) { # espectros de calibración
-			   datosEntrada$calib.x  <<- as.matrix(read.table((input$calib.x)$datapath))
-		} else datosEntrada$calib.x  <<- NULL
+			   INPUT$calib.x  <<- as.matrix(read.table((input$calib.x)$datapath))
+		} else INPUT$calib.x  <<- NULL
 
 		if (!is.null( input$calib.y )) { # concentraciones de calibración
-			   datosEntrada$calib.y  <<- as.matrix(read.table((input$calib.y)$datapath))
-		} else datosEntrada$calib.y  <<- NULL
+			   INPUT$calib.y  <<- as.matrix(read.table((input$calib.y)$datapath))
+		} else INPUT$calib.y  <<- NULL
 
 		if (!is.null( input$prueba.x )) { # espectros de prueba
-			   datosEntrada$prueba.x <<- as.matrix(read.table((input$prueba.x)$datapath))
-		} else datosEntrada$prueba.x <<- NULL
+			   INPUT$prueba.x <<- as.matrix(read.table((input$prueba.x)$datapath))
+		} else INPUT$prueba.x <<- NULL
 
 		if (!is.null( input$prueba.y )) { # concentraciones de prueba
-			   datosEntrada$prueba.y <<- as.matrix(read.table((input$prueba.y)$datapath))
-		} else datosEntrada$prueba.y <<- NULL
+			   INPUT$prueba.y <<- as.matrix(read.table((input$prueba.y)$datapath))
+		} else INPUT$prueba.y <<- NULL
 
 	})
 
 	# elección de sensores
-	observeEvent( input$elegirSensores.aplicar, {
-		V <- input$elegirSensores
-		V <- strsplit(V, split = " ")
-		V <- V[[1]]
-		V <- strtoi(V)
-		V <- split(V, ceiling(seq_along(V)/2))
+	observeEvent( input$INPUT.elegirSensores.aplicar, {
+		intervalos <- input$INPUT.elegirSensores
+		intervalos <- strsplit(intervalos, split = " ")
+		intervalos <- intervalos[[1]]
+		intervalos <- strtoi(intervalos)
+		intervalos <- split(intervalos, ceiling(seq_along(intervalos)/2))
 
-		if (!is.null(datosEntrada$calib.x)) {
-			datosEntrada$calib.x  <<- FiltrarSensores(datosEntrada$calib.x,  V)
+		if (!is.null(INPUT$calib.x)) {
+			INPUT$calib.x  <<- PrePro.FiltrarSensores(INPUT$calib.x,  intervalos)
 		}
-		if (!is.null(datosEntrada$prueba.x)) {
-			datosEntrada$prueba.x <<- FiltrarSensores(datosEntrada$prueba.x, V)
+		if (!is.null(INPUT$prueba.x)) {
+			INPUT$prueba.x <<- PrePro.FiltrarSensores(INPUT$prueba.x, intervalos)
 		}
 	})
 
 	# visualizaciones de los datos ingresados
 	observe({
 		# visualizacion en tabla:
-		# con la opción elegida en el widget datosEntrada.mostrar.crudo
+		# con la opción elegida en el widget INPUT.mostrar.crudo
 		# se elige el valor correspondiente para pasar a renderTable()
-		# y se lo asigna a datosEntrada.mostrar.crudo.figura
-		output$datosEntrada.mostrar.crudo.figura <- renderTable(
-		switch(input$datosEntrada.mostrar.crudo,
-			 'calib.x' = datosEntrada$calib.x ,
-			 'calib.y' = datosEntrada$calib.y ,
-			'prueba.x' = datosEntrada$prueba.x,
-			'prueba.y' = datosEntrada$prueba.y
+		# y se lo asigna a INPUT.mostrar.crudo.figura
+		output$INPUT.mostrar.crudo.figura <- renderTable(
+		switch(input$INPUT.mostrar.crudo,
+			 'calib.x' = INPUT$calib.x ,
+			 'calib.y' = INPUT$calib.y ,
+			'prueba.x' = INPUT$prueba.x,
+			'prueba.y' = INPUT$prueba.y
 		))
 
 		# visualizacion en gráfica:
-		# con la opción elegida en el widget datosEntrada.mostrar.grafica
+		# con la opción elegida en el widget INPUT.mostrar.grafica
 		# se elige el valor correspondiente y se lo asigna a
-		# datosEntrada.mostrar.grafica.val, para luego pasarlo a renderPlot()
-		mostrar.grafica.val <- switch(input$datosEntrada.mostrar.grafica,
-			 'calib.x' = datosEntrada$calib.x ,
-			 'calib.y' = datosEntrada$calib.y ,
-			'prueba.x' = datosEntrada$prueba.x,
- 			'prueba.y' = datosEntrada$prueba.y
+		# INPUT.mostrar.grafica.val, para luego pasarlo a renderPlot()
+		mostrar.grafica.val <- switch(input$INPUT.mostrar.grafica,
+			 'calib.x' = INPUT$calib.x ,
+			 'calib.y' = INPUT$calib.y ,
+			'prueba.x' = INPUT$prueba.x,
+ 			'prueba.y' = INPUT$prueba.y
 		)
 		# caso especial: si no existe el valor que corresponde a la opción
 		# elegida (el valor es igual a NULL), asigna directamente a
-		# datosEntrada.mostrar.grafica.figura el valor NULL, para evitar llamar
+		# INPUT.mostrar.grafica.figura el valor NULL, para evitar llamar
 		# a renderPlot(NULL) (no le gusta)
 		if (is.null(mostrar.grafica.val)) {
-			      output$datosEntrada.mostrar.grafica.figura <- NULL
-		# llama a renderPlot(datosEntrada.mostrar.grafica.val) y se lo asigna a
-		# datosEntrada.mostrar.grafica.figura
-		} else {  output$datosEntrada.mostrar.grafica.figura <- renderPlot({
-			switch(input$datosEntrada.mostrar.grafica,
+			      output$INPUT.mostrar.grafica.figura <- NULL
+		# llama a renderPlot(INPUT.mostrar.grafica.val) y se lo asigna a
+		# INPUT.mostrar.grafica.figura
+		} else {  output$INPUT.mostrar.grafica.figura <- renderPlot({
+			switch(input$INPUT.mostrar.grafica,
 				# llama a matplot() directamente, dado que los espectros se
 				# almacenan como columnas en una matriz
 				'calib.x' = , 'prueba.x' = {
 					matplot( 1 : nrow(mostrar.grafica.val), mostrar.grafica.val,
-   						xlab = 'Espectro', ylab = 'Absorbancia',
+   						xlab = 'N° de Sensor', ylab = 'Absorbancia',
    						lwd = 1.5, type = 'l' ) },
 				# como las concentraciones se almacenan en una matriz (a pesar
 				# de ser una sola columna) se llama a la función plot sobre
@@ -277,75 +271,74 @@ server <- function( input, output ) {
 	})
 
 	# preprocesamiento de los datos de entrada
-	observeEvent( input$preprocesarDatos, {
+	observeEvent( input$PREPRO.aplicar, {
 
 		# existen los datos preprocesados si se cargaron los datos necesarios
 		# por defecto, calib.x preprocesado es calib.x
-		if (!is.null(datosEntrada$calib.x)) {
-			   prePro$calib.x  <<- datosEntrada$calib.x
-		} else prePro$calib.x  <<- NULL
+		if (!is.null(INPUT$calib.x)) {
+			   PREPRO$calib.x  <<- INPUT$calib.x
+		} else PREPRO$calib.x  <<- NULL
 		# por defecto, calib.y preprocesada es calib.y
-		if (!is.null(datosEntrada$calib.y)) {
-			   prePro$calib.y  <<- datosEntrada$calib.y
-		} else prePro$calib.y  <<- NULL
+		if (!is.null(INPUT$calib.y)) {
+			   PREPRO$calib.y  <<- INPUT$calib.y
+		} else PREPRO$calib.y  <<- NULL
 		# por defecto, prueba.x preprocesado es prueba.x
-		if (!is.null(datosEntrada$prueba.x)) {
-			   prePro$prueba.x <<- datosEntrada$prueba.x
-		} else prePro$prueba.x <<- NULL
+		if (!is.null(INPUT$prueba.x)) {
+			   PREPRO$prueba.x <<- INPUT$prueba.x
+		} else PREPRO$prueba.x <<- NULL
 
-		if (input$procesarMSC == TRUE) {
-			if (!is.null(prePro$calib.x) && !is.null(prePro$prueba.x)) {
-				outMSC <- ProcesarCorreccionEsparcimientoMult(
-					prePro$calib.x, prePro$prueba.x)
-				prePro$calib.x  <<- outMSC[[1]]
-				prePro$prueba.x <<- outMSC[[2]]
+		if (input$PREPRO.MSC == TRUE) {
+			if (!is.null(PREPRO$calib.x) && !is.null(PREPRO$prueba.x)) {
+				outMSC <- PrePro.MSC(PREPRO$calib.x, PREPRO$prueba.x)
+				PREPRO$calib.x  <<- outMSC[[1]]
+				PREPRO$prueba.x <<- outMSC[[2]]
 			}
 		}
 
-		if (input$procesarSavitzkyGolay == TRUE) {
-			if (!is.null(prePro$calib.x)) {
-				prePro$calib.x <<- ProcesarSavitzkyGolay( prePro$calib.x,
-					input$procesarSavitzkyGolay.ordenDerivada,
-					input$procesarSavitzkyGolay.gradoPolinomio,
-					input$procesarSavitzkyGolay.largoVentana)
+		if (input$PREPRO.SavitzkyGolay == TRUE) {
+			if (!is.null(PREPRO$calib.x)) {
+				PREPRO$calib.x <<- PrePro.SavitzkyGolay( PREPRO$calib.x,
+					input$PREPRO.SavitzkyGolay.ord,
+					input$PREPRO.SavitzkyGolay.grad,
+					input$PREPRO.SavitzkyGolay.vlen)
 			}
-			if (!is.null(prePro$prueba.x)) {
-				prePro$prueba.x <<- ProcesarSavitzkyGolay( prePro$prueba.x,
-					input$procesarSavitzkyGolay.ordenDerivada,
-					input$procesarSavitzkyGolay.gradoPolinomio,
-					input$procesarSavitzkyGolay.largoVentana)
+			if (!is.null(PREPRO$prueba.x)) {
+				PREPRO$prueba.x <<- PrePro.SavitzkyGolay( PREPRO$prueba.x,
+					input$PREPRO.SavitzkyGolay.ord,
+					input$PREPRO.SavitzkyGolay.grad,
+					input$PREPRO.SavitzkyGolay.vlen)
 			}
 		}
 
 		# centrado de los datos
 		# (sólo se puede hacer algún centrado si existen los espectros de calibración)
-		if (input$centrarDatos == TRUE && !is.null(prePro$calib.x)) {
+		if (input$PREPRO.centrar == TRUE && !is.null(PREPRO$calib.x)) {
 			# calcula el promedio de los espectros de calibración y lo guarda
 			# como una matrix columna
-			prePro$calib.x.espectroPromedio <<- matrix( nrow = nrow( prePro$calib.x ) )
-			for ( i in 1 : nrow( prePro$calib.x ) ) {
-				prePro$calib.x.espectroPromedio[i] <<- mean( prePro$calib.x[i,] )
+			PREPRO$calib.x.especProm <<- matrix(nrow = nrow(PREPRO$calib.x))
+			for (i in 1 : nrow(PREPRO$calib.x)) {
+				PREPRO$calib.x.especProm[i] <<- mean(PREPRO$calib.x[i,])
 			}
 
 			# centrado de los espectros de calibración:
 			# restarle el espectro promedio a todos los espectros de calibración
-			for ( i in 1 : ncol(prePro$calib.x ) ) {
-				prePro$calib.x[,i] <<- prePro$calib.x[,i] - prePro$calib.x.espectroPromedio
+			for (i in 1 : ncol(PREPRO$calib.x)) {
+				PREPRO$calib.x[,i] <<- PREPRO$calib.x[,i] - PREPRO$calib.x.especProm
 			}
 
 			# centrado de las concentraciones de calibración:
 			# calcular el promedio de todas las concentraciones de calibración
 			# y restárselo a todas las concentraciones de calibración
-			if (!is.null(prePro$calib.y)) {
-				prePro$calib.y.valorPromedio <<- mean(prePro$calib.y)
-				prePro$calib.y <<- prePro$calib.y - prePro$calib.y.valorPromedio
+			if (!is.null(PREPRO$calib.y)) {
+				PREPRO$calib.y.concentProm <<- mean(PREPRO$calib.y)
+				PREPRO$calib.y <<- PREPRO$calib.y - PREPRO$calib.y.concentProm
 			}
 
 			# centrado de los espectros de prueba:
 			# restarle el espectro promedio a todos los espectros de prueba
-			if (!is.null(prePro$prueba.x)) {
-				for ( i in 1 : ncol(prePro$prueba.x) ) {
-					prePro$prueba.x[,i] <<- prePro$prueba.x[,i] - prePro$calib.x.espectroPromedio
+			if (!is.null(PREPRO$prueba.x)) {
+				for (i in 1 : ncol(PREPRO$prueba.x)) {
+					PREPRO$prueba.x[,i] <<- PREPRO$prueba.x[,i] - PREPRO$calib.x.especProm
 				}
 			}
 		}
@@ -355,37 +348,37 @@ server <- function( input, output ) {
 	# visualizaciones de los datos preprocesados
 	observe({
 		# visualizacion en tabla:
-		# con la opción elegida en el widget prePro.mostrar.crudo
+		# con la opción elegida en el widget PREPRO.mostrar.crudo
 		# se elige el valor correspondiente para pasar a renderTable()
-		# y se lo asigna a prePro.mostrar.crudo.figura
-		output$prePro.mostrar.crudo.figura <- renderTable(
-		switch(input$prePro.mostrar.crudo,
-			 'calib.x' = prePro$calib.x ,
-			 'calib.y' = prePro$calib.y ,
-			'prueba.x' = prePro$prueba.x,
+		# y se lo asigna a PREPRO.mostrar.crudo.figura
+		output$PREPRO.mostrar.crudo.figura <- renderTable(
+		switch(input$PREPRO.mostrar.crudo,
+			 'calib.x' = PREPRO$calib.x ,
+			 'calib.y' = PREPRO$calib.y ,
+			'prueba.x' = PREPRO$prueba.x,
 		))
 		# visualizacion en gráfica:
-		# con la opción elegida en el widget prePro.mostrar.grafica
+		# con la opción elegida en el widget PREPRO.mostrar.grafica
 		# se elige el valor correspondiente y se lo asigna a
-		# prePro.mostrar.grafica.val, para luego pasarlo a renderPlot()
-		mostrar.grafica.val <- switch(input$prePro.mostrar.grafica,
-			 'calib.x' = prePro$calib.x ,
-			 'calib.y' = prePro$calib.y ,
-			'prueba.x' = prePro$prueba.x
+		# PREPRO.mostrar.grafica.val, para luego pasarlo a renderPlot()
+		mostrar.grafica.val <- switch(input$PREPRO.mostrar.grafica,
+			 'calib.x' = PREPRO$calib.x ,
+			 'calib.y' = PREPRO$calib.y ,
+			'prueba.x' = PREPRO$prueba.x
 		)
 		# caso especial: si no existe el valor que corresponde a la opción
 		# elegida (el valor es igual a NULL), asigna directamente a
-		# prePro.mostrar.grafica.figura el valor NULL, para evitar llamar
+		# PREPRO.mostrar.grafica.figura el valor NULL, para evitar llamar
 		# a renderPlot(NULL) (no le gusta)
 		if (is.null(mostrar.grafica.val)) {
-			      output$prePro.mostrar.grafica.figura <- NULL
-		} else {  output$prePro.mostrar.grafica.figura <- renderPlot({
-			switch(input$prePro.mostrar.grafica,
+			      output$PREPRO.mostrar.grafica.figura <- NULL
+		} else {  output$PREPRO.mostrar.grafica.figura <- renderPlot({
+			switch(input$PREPRO.mostrar.grafica,
 				# llama a matplot() directamente, dado que los espectros se
 				# almacenan como columnas en una matriz
 				'calib.x' = , 'prueba.x' = {
 					matplot( 1 : nrow(mostrar.grafica.val), mostrar.grafica.val,
-   						xlab = 'Espectro', ylab = 'Absorbancia',
+   						xlab = 'N° de Sensor', ylab = 'Absorbancia',
    						lwd = 1.5, type = 'l' ) },
 				# como las concentraciones se almacenan en una matriz (a pesar
 				# de ser una sola columna) se llama a la función plot sobre
@@ -401,106 +394,104 @@ server <- function( input, output ) {
 
 	# construcción del modelo con los datos de preprocesados y
 	# predicción de las concentraciones
-	observeEvent( input$construirModelo, { if
-	(!is.null(prePro$calib.x) && !is.null(prePro$calib.y)) {
+	observeEvent( input$OUTPUT.construirModelo, {
+		if (!is.null(PREPRO$calib.x) && !is.null(PREPRO$calib.y)) {
 		# obtiene los coeficientes como una matriz columna
-		datosSalida$coeficientesRegresion <<- CalcularCoefRegr.PLS1(
-			prePro$calib.x, prePro$calib.y, input$numVariablesLatentes
-		)
+		OUTPUT$coefRegr <<- CalcularCoefRegr.PLS1(
+			PREPRO$calib.x, PREPRO$calib.y, input$OUTPUT.nvl)
 		# obtiene las concentraciones de predicción
-		if (!is.null(prePro$prueba.x)) {
+		if (!is.null(PREPRO$prueba.x)) {
 			# multiplica cada espectro de prueba por los coeficientes para
 			# obtener las concentraciones
-			datosSalida$concentracionesPredichas <<-
-				t(prePro$prueba.x) %*% datosSalida$coeficientesRegresion
+			OUTPUT$concentPred <<- t(PREPRO$prueba.x) %*% OUTPUT$coefRegr
 			# si se centraron los datos, se tiene que decentralizar las
 			# concentraciones de prediccón sumándoles el promedio de las
 			# concentraciones de prueba
-			if (input$centrarDatos == TRUE) {
-				datosSalida$concentracionesPredichas <<- datosSalida$concentracionesPredichas + prePro$calib.y.valorPromedio
+			if (input$PREPRO.centrar == TRUE) {
+				OUTPUT$concentPred <<- OUTPUT$concentPred + PREPRO$calib.y.concentProm
 			}
 		}
 	}})
 
 	# validación del modelo:
 	# sólo si están definidos calib.x y calib.y
-	observeEvent( input$validarModelo, { if
-	(!is.null(prePro$calib.x) && !is.null(prePro$calib.y)) {
+	observeEvent( input$OUTPUT.validarModelo, { if
+	(!is.null(PREPRO$calib.x) && !is.null(PREPRO$calib.y)) {
 		# si se centraron los datos, se tienen que decentralizar antes de
 		# realizar la validacíon del modelo
-		calib.x <- prePro$calib.x
-		calib.y <- prePro$calib.y
-		if (input$centrarDatos == TRUE) {
+		calib.x <- PREPRO$calib.x
+		calib.y <- PREPRO$calib.y
+		if (input$PREPRO.centrar == TRUE) {
 			# decentraliza calib.x
- 			for ( i in 1 : ncol(prePro$calib.x) ) {
- 				calib.x[,i] <- prePro$calib.x[,i] + prePro$calib.x.espectroPromedio
+ 			for ( i in 1 : ncol(PREPRO$calib.x) ) {
+ 				calib.x[,i] <- PREPRO$calib.x[,i] + PREPRO$calib.x.especProm
  			}
 			# decentraliza calib.y
-			calib.y <- prePro$calib.y + prePro$calib.y.valorPromedio
+			calib.y <- PREPRO$calib.y + PREPRO$calib.y.concentProm
  		}
 		# calcula los errores PRESS por número de variables latentes
-		datosSalida$press.variablesLatentes <<- as.matrix(ValidarModelo.LOO.PLS1(
-			calib.x, calib.y, input$numMaxVariablesLatentes, centrar = input$centrarDatos  ))
-		# calcula las estadísticas F producidas con los valores PRESS
-		datosSalida$fstat.variablesLatentes <<- datosSalida$press.variablesLatentes /
-			datosSalida$press.variablesLatentes[ length(datosSalida$press.variablesLatentes) ]
-		# calcula las probabilidades de obtener cada estadística F
-		datosSalida$probFstat.variablesLatentes <<- as.matrix(CalcularProbF(
-			datosSalida$fstat.variablesLatentes, ncol( calib.x ), ncol( calib.x ) ))
+		OUTPUT$press.nvl <<- as.matrix(ValidarModelo.LOO.PLS1(
+			calib.x, calib.y, input$OUTPUT.nvl.max,
+			centrar = input$PREPRO.centrar))
+		# calcula las ESTADísticas F producidas con los valores PRESS
+		OUTPUT$fstat.nvl <<- OUTPUT$press.nvl / OUTPUT$press.nvl[ length(OUTPUT$press.nvl) ]
+		# calcula las probabilidades de obtener cada ESTADística F
+		OUTPUT$probFstat.nvl <<- as.matrix(CalcularProbF(
+			OUTPUT$fstat.nvl, ncol(calib.x), ncol(calib.x)))
 
 	}})
 
 	# visualizaciones de los datos obtenidos por la validación del modelo
 	observe({
 		# visualizacion en tabla:
-		# con la opción elegida en el widget datosSalida.mostrar.crudo
+		# con la opción elegida en el widget OUTPUT.mostrar.crudo
 		# se elige el valor correspondiente para pasar a renderTable()
-		# y se lo asigna a datosSalida.mostrar.crudo.figura
-		output$datosSalida.mostrar.crudo.figura <- renderTable(
-		switch(input$datosSalida.mostrar.crudo,
-			 'coeficientesRegresion' = datosSalida$coeficientesRegresion,
-			 'press.variablesLatentes' = datosSalida$press.variablesLatentes,
-			 'fstat.variablesLatentes' = datosSalida$fstat.variablesLatentes,
-			 'probFstat.variablesLatentes' = datosSalida$probFstat.variablesLatentes,
-			 'concentracionesPredichas' = datosSalida$concentracionesPredichas,
-			 'prueba.y' = datosEntrada$prueba.y
+		# y se lo asigna a OUTPUT.mostrar.crudo.figura
+		output$OUTPUT.mostrar.crudo.figura <- renderTable(
+		switch(input$OUTPUT.mostrar.crudo,
+			 'coefRegr' = OUTPUT$coefRegr,
+			 'press.nvl' = OUTPUT$press.nvl,
+			 'fstat.nvl' = OUTPUT$fstat.nvl,
+			 'probFstat.nvl' = OUTPUT$probFstat.nvl,
+			 'concentPred' = OUTPUT$concentPred,
+			 'prueba.y' = INPUT$prueba.y
 		))
 		# visualizacion en gráfica:
-		# con la opción elegida en el widget datosSalida.mostrar.grafica
+		# con la opción elegida en el widget OUTPUT.mostrar.grafica
 		# se elige el valor correspondiente y se lo asigna a
-		# datosSalida.mostrar.grafica.val, para luego pasarlo a renderPlot()
-		mostrar.grafica.val <- switch(input$datosSalida.mostrar.grafica,
-			'coeficientesRegresion' = datosSalida$coeficientesRegresion,
-			'press.variablesLatentes' = datosSalida$press.variablesLatentes,
-			'fstat.variablesLatentes' = datosSalida$fstat.variablesLatentes,
-			'probFstat.variablesLatentes' = datosSalida$probFstat.variablesLatentes,
-			'concentracionesPredichas' = datosSalida$concentracionesPredichas,
-			'prueba.y' = datosEntrada$prueba.y
+		# OUTPUT.mostrar.grafica.val, para luego pasarlo a renderPlot()
+		mostrar.grafica.val <- switch(input$OUTPUT.mostrar.grafica,
+			'coefRegr' = OUTPUT$coefRegr,
+			'press.nvl' = OUTPUT$press.nvl,
+			'fstat.nvl' = OUTPUT$fstat.nvl,
+			'probFstat.nvl' = OUTPUT$probFstat.nvl,
+			'concentPred' = OUTPUT$concentPred,
+			'prueba.y' = INPUT$prueba.y
 		)
 		# caso especial: si no existe el valor que corresponde a la opción
 		# elegida (el valor es igual a NULL), asigna directamente a
-		# datosSalida.mostrar.grafica.figura el valor NULL, para evitar llamar
+		# OUTPUT.mostrar.grafica.figura el valor NULL, para evitar llamar
 		# a renderPlot(NULL) (no le gusta)
 		if (is.null(mostrar.grafica.val)) {
-			      output$datosSalida.mostrar.grafica.figura <- NULL
-		} else {  output$datosSalida.mostrar.grafica.figura <- renderPlot({
-			switch(input$datosSalida.mostrar.grafica,
+			      output$OUTPUT.mostrar.grafica.figura <- NULL
+		} else {  output$OUTPUT.mostrar.grafica.figura <- renderPlot({
+			switch(input$OUTPUT.mostrar.grafica,
 				# como todos estos valores se almacenan en matrices (a pesar
 				# de ser sólo columnas) se llama a la función plot sobre
 				# la primer columna de cada uno
-				'coeficientesRegresion' = {
+				'coefRegr' = {
 					plot( 1 : nrow(mostrar.grafica.val), mostrar.grafica.val[,1],
-	   					xlab = 'Número', ylab = 'Valor',
+	   					xlab = 'N° de Sensor', ylab = 'Valor de Coeficiente',
 	   					lwd = 1.5, type = 'l' ) },
-				'press.variablesLatentes' = , 'fstat.variablesLatentes' = ,
-				'probFstat.variablesLatentes' = {
+				'press.nvl' = , 'fstat.nvl' = ,
+				'probFstat.nvl' = {
 					plot( 1 : nrow(mostrar.grafica.val), mostrar.grafica.val[,1],
-	   					xlab = 'Número', ylab = 'Valor',
+	   					xlab = 'N° de Variables Latenes', ylab = 'Valor',
 					bg = 'black', pch = 20, cex = 1.3 )
 					lines(mostrar.grafica.val) },
-				'concentracionesPredichas' = , 'prueba.y' = {
+				'concentPred' = , 'prueba.y' = {
 					plot( 1 : nrow(mostrar.grafica.val), mostrar.grafica.val[,1],
-   						xlab = 'N° de Muestra', ylab = 'Contenido',
+   						xlab = 'N° de Muestra', ylab = 'Concentración',
    						bg = 'black', pch = 20, cex = 1.3 )
 					lines(mostrar.grafica.val) }
 			)
@@ -509,16 +500,14 @@ server <- function( input, output ) {
 
 	# visualizaciones de los datos estadísticos sobre la calidad de la prediccón
 	observe({
-		if (input$estad.mostrar.grafica == 'prueba.y.vs.concentPred') {
-			if (
-				is.null( datosSalida$concentracionesPredichas) ||
-			    is.null(datosEntrada$prueba.y)
-			) {    output$estad.mostrar.grafica <- NULL }
-			else { output$estad.mostrar.grafica <- renderPlot({
-				plot( datosSalida$concentracionesPredichas, datosEntrada$prueba.y,
- 					xlab = 'Concentraciones Predichas', ylab = 'Valores Nominales',
+		if (input$ESTAD.mostrar.grafica == 'prueba.y.vs.concentPred') {
+			if ( is.null( OUTPUT$concentPred) || is.null(INPUT$prueba.y)) {
+				   output$ESTAD.mostrar.grafica <- NULL }
+			else { output$ESTAD.mostrar.grafica <- renderPlot({
+				plot( OUTPUT$concentPred, INPUT$prueba.y,
+ 					xlab = 'Valores Nominales', ylab = 'Valores Predichos',
 				 	bg = 'black', pch = 20, cex = 1.3 )
-				lines(1 : length(datosSalida$concentracionesPredichas))
+				lines(1 : length(OUTPUT$concentPred))
 			})}
 		}
 	})
