@@ -1,3 +1,12 @@
-# Calibracion-Multivariante
+# MVC1
 
-Programa hecho para explorar el comportamiento de distintos métodos de calibración multivariante, implementados en R. 
+Aplicación web super divertida para hacer calibración multivariante de primer
+orden sobre datos quimiométricos.
+
+# Instalación
+
+???
+
+# Cómo usar
+
+???
