@@ -9,13 +9,11 @@ CentrarVector <- function( vector ) {
 
 # centra una matriz 2D por columnas
 CentrarMatriz2DPorColumnas <- function( matriz ) {
-	# columna promedio de M: el i-ésimo valor de column_prom es el promedio de
-	# los valores de la i-ésima fila de M
-	colprom <- matrix(nrow = nrow(matriz))
+	colprom <- matrix(nrow = nrow(matriz)) # columna promedio
 	for (i in 1 : nrow(matriz)) {
 		colprom[i] <- mean(matriz[i,])
 	}
-	# matriz centrada: a cada columna se le resta la columna promedio
+	# restar columa promedio a todas las columnas
 	matriz.cent <- matrix(nrow = nrow(matriz), ncol = ncol(matriz))
 	for (i in 1 : ncol(matriz.cent)) {
 		matriz.cent[,i] <- matriz[,i] - colprom
@@ -24,18 +22,18 @@ CentrarMatriz2DPorColumnas <- function( matriz ) {
 }
 
 # produce coeficientes de regresión
-# para unas muestras de calibrado y un número variables latentes
-# usando el modelo PLS
-# calib.x : espectros de calibración
-# calib.y : concentraciones de calibración
+# usando espectros y concentraciones de calibrado y un número variables latentes
+# usando el modelo PLS-1
+# calib.x : espectros de calibrado
+# calib.y : concentraciones de calibrado
 # nvl     : número de variables latentes
-CalcularCoefRegrPLS <- function( calib.x, calib.y, nvl ) {
+CalcularCoefRegr.PLS1 <- function( calib.x, calib.y, nvl ) {
 
-	w = matrix( ncol = nrow(calib.x) )
-	v = matrix( ncol = nvl           )
-	W = matrix( ncol = nvl, nrow = nrow(calib.x) )
-	T = matrix( ncol = nvl, nrow = ncol(calib.x) )
-	P = matrix( ncol = nvl, nrow = nrow(calib.x) )
+	w <- matrix(ncol = nrow(calib.x)) # vector de pesos
+	v <- matrix(ncol = nvl          ) # vector de coeficientes de regresión
+	W <- matrix(ncol = nvl, nrow = nrow(calib.x)) # cargamentos de peso
+	P <- matrix(ncol = nvl, nrow = nrow(calib.x)) # cargamentos normales
+	T <- matrix(ncol = nvl, nrow = ncol(calib.x)) # matriz de puntajes
 
 	for (i in 1 : nvl) {
 		w       <- calib.x %*% calib.y / as.numeric( t( calib.y ) %*% calib.y )
@@ -52,19 +50,19 @@ CalcularCoefRegrPLS <- function( calib.x, calib.y, nvl ) {
 
 }
 
-# realiza una validación cruzada con el modelo PLS
+# realiza una validación cruzada leave-one-out con el modelo PLS-1
 # devuelve los errores PRESS para cada número de variables latentes
-# calib.x : espectros de calibración
-# calib.y : concentraciones de calibración
+# calib.x : espectros de calibrado
+# calib.y : concentraciones de calibrado
 # nvl.max : número máximo de variables latentes
 # centrar : booleano para decidir si centrar los datos o no en la validación
-CalcularPRESSPorNumVarLat <- function( calib.x, calib.y, nvl.max, centrar ) {
+ValidarModelo.LOO.PLS1 <- function( calib.x, calib.y, nvl.max, centrar ) {
 
-	# salida, lista de errores PRESS, de uno a var_lat_max
+	# salida, lista de errores PRESS, de uno a nvl.max
 	press.vals <- numeric( nvl.max )
 
-	for     (nvl in 1 :      nvl.max ) { # para todos los números de variables latentes
-		for (  i in 1 : ncol(calib.x)) { # para todas las muestras
+	for     (nvl in 1 :      nvl.max ) {
+		for (  i in 1 : ncol(calib.x)) {
 
 			# se aisla la i-ésima muestra
 		 	espect.ais  <- calib.x[, i] # espectro aislado
@@ -72,7 +70,7 @@ CalcularPRESSPorNumVarLat <- function( calib.x, calib.y, nvl.max, centrar ) {
 			concent.ais <- calib.y[  i] # concentración aislada
 			calib.y.p   <- calib.y[ -i] # concentraciones sin la asilada
 
-			if (centrar == TRUE) { # se centran los datos
+			if (centrar == TRUE) { # centrado
 				datos_centrados_X <- CentrarMatriz2DPorColumnas(calib.x.p)
 				calib.x.p         <- datos_centrados_X[[1]] # espectros centrados
 				calib.x.p.prom    <- datos_centrados_X[[2]] # espectro promedio
@@ -83,10 +81,10 @@ CalcularPRESSPorNumVarLat <- function( calib.x, calib.y, nvl.max, centrar ) {
 				concent.ais <- concent.ais - calib.y.p.prom
 			}
 
-			# se crea un modelo PLS con los datos, se intenta predecir el valor de la
-			# muestra aislada y se suma el error cuadrado al PRESS para este número de
-			# variables latentes
-			coef.regr <- as.vector(CalcularCoefRegrPLS(calib.x.p, calib.y.p, nvl))
+			# se crea un modelo PLS-1 con los datos, se intenta predecir el
+			# valor de la muestra aislada y se suma el error cuadrado al PRESS
+			# para este número de variables latentes
+			coef.regr <- as.vector(CalcularCoefRegr.PLS1(calib.x.p, calib.y.p, nvl))
 			concent.ais.pred <- espect.ais %*% coef.regr
 			press.vals[nvl]  <- press.vals[nvl] + ((concent.ais.pred - concent.ais)^2)
 
@@ -94,7 +92,6 @@ CalcularPRESSPorNumVarLat <- function( calib.x, calib.y, nvl.max, centrar ) {
 	}
 
 	return (press.vals)
-
 }
 
 # devuelve la probablidad asociada a la estadística F
@@ -121,15 +118,15 @@ CalcularProbF <- function( f, k1, k2 ) {
 }
 
 # estima el número óptimo de variables latentes a usar
-# por validación cruzada y PLS
+# por validación cruzada leave-one-out y PLS-1
 # calib.x : espectros de calibración
 # calib.y : concentraciones de calibración
 # nvl.max : número máximo de variables latentes
 # centrar : booleano que decide si centrar o no los datos
-CalcularNumOptVarLat <- function( calib.x, calib.y, nvl.max, centrar ) {
+CalcularNumOptVarLat.LOO.PLS1 <- function( calib.x, calib.y, nvl.max, centrar ) {
 
 	# errores PRESS
-	press.vals <- CalcularPRESSPorNumVarLat(calib.x, calib.y, nvl.max, centrar)
+	press.vals <- ValidarModelo.LOO.PLS1(calib.x, calib.y, nvl.max, centrar)
 
 	# PRESS / min(PRESS) (análogo al parámetro estadístico F)
 	f.vals <- press.vals / press.vals[length(press.vals)]

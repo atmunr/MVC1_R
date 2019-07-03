@@ -403,7 +403,7 @@ server <- function( input, output ) {
 	observeEvent( input$construirModelo, { if
 	(!is.null(prePro$calib.x) && !is.null(prePro$calib.y)) {
 		# obtiene los coeficientes como una matriz columna
-		datosSalida$coeficientesRegresion <<- CalcularCoefRegrPLS(
+		datosSalida$coeficientesRegresion <<- CalcularCoefRegr.PLS1(
 			prePro$calib.x, prePro$calib.y, input$numVariablesLatentes
 		)
 		# obtiene las concentraciones de predicción
@@ -438,7 +438,7 @@ server <- function( input, output ) {
 			calib.y <- prePro$calib.y + prePro$calib.y.valorPromedio
  		}
 		# calcula los errores PRESS por número de variables latentes
-		datosSalida$press.variablesLatentes <<- as.matrix(CalcularPRESSPorNumVarLat(
+		datosSalida$press.variablesLatentes <<- as.matrix(ValidarModelo.LOO.PLS1(
 			calib.x, calib.y, input$numMaxVariablesLatentes, centrar = input$centrarDatos  ))
 		# calcula las estadísticas F producidas con los valores PRESS
 		datosSalida$fstat.variablesLatentes <<- datosSalida$press.variablesLatentes /
