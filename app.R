@@ -1,6 +1,7 @@
 library(shiny)
 library(shinythemes)
 source("PLS.R")
+source("preprocesar.R")
 
  # datos ingresados al programa
 datosEntrada <- reactiveValues()
