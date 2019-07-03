@@ -1,5 +1,3 @@
-library('corpcor') # pseudoinverse()
-
 # produce coeficientes de regresión
 # usando espectros y concentraciones de calibrado y un número variables latentes
 # usando el modelo PLS-1
