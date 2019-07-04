@@ -5,22 +5,22 @@ source("preprocesar.R")
 
  # datos ingresados al programa
 INPUT <- reactiveValues()
-INPUT$calib.x  <- NULL # espectros de calibración
-INPUT$calib.y  <- NULL # concentraciones de calibración
+INPUT$calib.x  <- NULL # espectros de calibrado
+INPUT$calib.y  <- NULL # concentraciones de calibrado
 INPUT$prueba.x <- NULL # espectros de prueba
 INPUT$prueba.y <- NULL # concentraciones de prueba
 
  # datos ingresados, luego de ser preprocesados
 PREPRO <- reactiveValues()
-PREPRO$calib.x         <- NULL # espectros de calibración preprocesados
-PREPRO$calib.y         <- NULL # concentraciones de calibración preprocesadas
+PREPRO$calib.x         <- NULL # espectros de calibrado preprocesados
+PREPRO$calib.y         <- NULL # concentraciones de calibrado preprocesadas
 PREPRO$prueba.x        <- NULL # espectros de prueba preprocesados
- # si se centran los datos, el promedio de los espectros de calibración
+ # si se centran los datos, el promedio de los espectros de calibrado
 PREPRO$calib.x.especProm <- NULL
- # si se centran los datos, el promedio de las concentraciones de calibración
+ # si se centran los datos, el promedio de las concentraciones de calibrado
 PREPRO$calib.y.concentProm <- NULL
 
- # resultados de la calibración multivariada
+ # resultados de la calibrado multivariada
 OUTPUT <- reactiveValues()
 OUTPUT$coefRegr       <- NULL # coeficientes de regresión
  # error ESTADístico PRESS para cada número de variables latentes
@@ -29,7 +29,7 @@ OUTPUT$press.nvl     <- NULL
 OUTPUT$fstat.nvl     <- NULL
  # probabilidad de obtener cada ESTADística F
 OUTPUT$probFstat.nvl <- NULL
- # las concentraciones que predice la calibración multivariada
+ # las concentraciones que predice la calibrado multivariada
 OUTPUT$concentPred    <- NULL
 
 # defición de la interfaz gráfica
@@ -184,11 +184,11 @@ server <- function( input, output ) {
 		# para facilitar el cómputo
 		# si no se ingresó ningún archivo, el valor correspondiente será NULL
 
-		if (!is.null( input$calib.x )) { # espectros de calibración
+		if (!is.null( input$calib.x )) { # espectros de calibrado
 			   INPUT$calib.x  <<- as.matrix(read.table((input$calib.x)$datapath))
 		} else INPUT$calib.x  <<- NULL
 
-		if (!is.null( input$calib.y )) { # concentraciones de calibración
+		if (!is.null( input$calib.y )) { # concentraciones de calibrado
 			   INPUT$calib.y  <<- as.matrix(read.table((input$calib.y)$datapath))
 		} else INPUT$calib.y  <<- NULL
 
@@ -311,24 +311,24 @@ server <- function( input, output ) {
 		}
 
 		# centrado de los datos
-		# (sólo se puede hacer algún centrado si existen los espectros de calibración)
+		# (sólo se puede hacer algún centrado si existen los espectros de calibrado)
 		if (input$PREPRO.centrar == TRUE && !is.null(PREPRO$calib.x)) {
-			# calcula el promedio de los espectros de calibración y lo guarda
+			# calcula el promedio de los espectros de calibrado y lo guarda
 			# como una matrix columna
 			PREPRO$calib.x.especProm <<- matrix(nrow = nrow(PREPRO$calib.x))
 			for (i in 1 : nrow(PREPRO$calib.x)) {
 				PREPRO$calib.x.especProm[i] <<- mean(PREPRO$calib.x[i,])
 			}
 
-			# centrado de los espectros de calibración:
-			# restarle el espectro promedio a todos los espectros de calibración
+			# centrado de los espectros de calibrado:
+			# restarle el espectro promedio a todos los espectros de calibrado
 			for (i in 1 : ncol(PREPRO$calib.x)) {
 				PREPRO$calib.x[,i] <<- PREPRO$calib.x[,i] - PREPRO$calib.x.especProm
 			}
 
-			# centrado de las concentraciones de calibración:
-			# calcular el promedio de todas las concentraciones de calibración
-			# y restárselo a todas las concentraciones de calibración
+			# centrado de las concentraciones de calibrado:
+			# calcular el promedio de todas las concentraciones de calibrado
+			# y restárselo a todas las concentraciones de calibrado
 			if (!is.null(PREPRO$calib.y)) {
 				PREPRO$calib.y.concentProm <<- mean(PREPRO$calib.y)
 				PREPRO$calib.y <<- PREPRO$calib.y - PREPRO$calib.y.concentProm

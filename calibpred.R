@@ -114,8 +114,8 @@ CalcularProbF <- function( f, k1, k2 ) {
 
 # estima el número óptimo de variables latentes a usar
 # por validación cruzada leave-one-out y PLS-1
-# calib.x : espectros de calibración
-# calib.y : concentraciones de calibración
+# calib.x : espectros de calibrado
+# calib.y : concentraciones de calibrado
 # nvl.max : número máximo de variables latentes
 # centrar : booleano que decide si centrar o no los datos
 CalcularNumOptVarLat.LOO.PLS1 <- function( calib.x, calib.y, nvl.max, centrar ) {
