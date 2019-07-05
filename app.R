@@ -1,6 +1,6 @@
 library(shiny)
 library(shinythemes)
-source("PLS.R")
+source("calibpred.R")
 source("preprocesar.R")
 
  # datos ingresados al programa
@@ -46,7 +46,7 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
             	fileInput( 'prueba.x' ,      'Prueba X' ),
 				fileInput( 'prueba.y' ,      'Prueba Y' ),
 				textInput( 'INPUT.elegirSensores', 'Sensores' ),
-				actionButton('INPUT.elegirSensores.aplicar', 'Aplicar Cambios' )
+				actionButton('INPUT.aplicar', 'Actualizar' )
 			),
 			mainPanel(tabsetPanel( # mostrar datos en forma de tabla
 				tabPanel( 'Datos crudos',
@@ -177,45 +177,42 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 # defición del código de servidor
 server <- function( input, output ) {
 
-	# carga de datos de entrada
-	observe({
-		# asignación de valores para los datos de entrada:
-		# leer los archivos de entrada y convertirlos de tablas a matrices
-		# para facilitar el cómputo
-		# si no se ingresó ningún archivo, el valor correspondiente será NULL
+	# definición de datos ingresados a la herramienta:
+	observeEvent( input$INPUT.aplicar, {
 
-		if (!is.null( input$calib.x )) { # espectros de calibrado
+		# carga de archivos
+		if (!is.null( input$calib.x )) {
 			   INPUT$calib.x  <<- as.matrix(read.table((input$calib.x)$datapath))
 		} else INPUT$calib.x  <<- NULL
 
-		if (!is.null( input$calib.y )) { # concentraciones de calibrado
+		if (!is.null( input$calib.y )) {
 			   INPUT$calib.y  <<- as.matrix(read.table((input$calib.y)$datapath))
 		} else INPUT$calib.y  <<- NULL
 
-		if (!is.null( input$prueba.x )) { # espectros de prueba
+		if (!is.null( input$prueba.x )) {
 			   INPUT$prueba.x <<- as.matrix(read.table((input$prueba.x)$datapath))
 		} else INPUT$prueba.x <<- NULL
 
-		if (!is.null( input$prueba.y )) { # concentraciones de prueba
+		if (!is.null( input$prueba.y )) {
 			   INPUT$prueba.y <<- as.matrix(read.table((input$prueba.y)$datapath))
 		} else INPUT$prueba.y <<- NULL
 
-	})
-
-	# elección de sensores
-	observeEvent( input$INPUT.elegirSensores.aplicar, {
+		# elección de sensores
 		intervalos <- input$INPUT.elegirSensores
-		intervalos <- strsplit(intervalos, split = " ")
-		intervalos <- intervalos[[1]]
-		intervalos <- strtoi(intervalos)
-		intervalos <- split(intervalos, ceiling(seq_along(intervalos)/2))
+		if (intervalos != "") {
+			intervalos <- strsplit(intervalos, split = " ")
+			intervalos <- intervalos[[1]]
+			intervalos <- strtoi(intervalos)
+			intervalos <- split(intervalos, ceiling(seq_along(intervalos)/2))
 
-		if (!is.null(INPUT$calib.x)) {
-			INPUT$calib.x  <<- PrePro.FiltrarSensores(INPUT$calib.x,  intervalos)
+			if (!is.null(INPUT$calib.x)) {
+				INPUT$calib.x  <<- PrePro.FiltrarSensores(INPUT$calib.x,  intervalos)
+			}
+			if (!is.null(INPUT$prueba.x)) {
+				INPUT$prueba.x <<- PrePro.FiltrarSensores(INPUT$prueba.x, intervalos)
+			}
 		}
-		if (!is.null(INPUT$prueba.x)) {
-			INPUT$prueba.x <<- PrePro.FiltrarSensores(INPUT$prueba.x, intervalos)
-		}
+
 	})
 
 	# visualizaciones de los datos ingresados
