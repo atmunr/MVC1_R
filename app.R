@@ -1,3 +1,4 @@
+library(stringr)
 library(shiny)
 library(shinythemes)
 source("calibpred.R")
@@ -33,7 +34,7 @@ OUTPUT$probFstat.nvl <- NULL
 OUTPUT$concentPred    <- NULL
 
 # defición de la interfaz gráfica
-ui <- fluidPage( #theme = shinytheme('darkly'),
+ui <- fluidPage( theme = shinytheme('darkly'),
 
 	headerPanel( 'Calibración Multivariada' ),
 	tabsetPanel(
@@ -197,20 +198,45 @@ server <- function( input, output ) {
 			   INPUT$prueba.y <<- as.matrix(read.table((input$prueba.y)$datapath))
 		} else INPUT$prueba.y <<- NULL
 
-		# elección de sensores
-		intervalos <- input$INPUT.elegirSensores
-		if (intervalos != "") {
+		# elección de sensores:
+		# si son válidos, convertir los intervalos de un string a una vector de
+		# pares de números. si no, igualarlo a NULL
+		procesarIntervalos <- function( intervalos, nmaxsensor ) {
+			# verificar que solo hayan números o espacios
+			if (grepl("^[0-9 ]+$", intervalos) == FALSE) return(NULL)
+			# quitar espacios al principio y fin y unir espacios consecutivos en uno
+			intervalos <- gsub("\\s+", " ", str_trim(intervalos))
+			# obtener un vector de strings
 			intervalos <- strsplit(intervalos, split = " ")
 			intervalos <- intervalos[[1]]
+			# verificar que haya un número par de valores
+			if (length(intervalos) %% 2 != 0) return(NULL)
+			# obtener un vector de números
 			intervalos <- strtoi(intervalos)
+			# verificar que sean valores enteros
+			#if (!is.integer(intervalos)) return(NULL)
+			# verificar que sean subintervalos del rango total de sensores
+			if (min(intervalos) < 1 || max(intervalos) > nmaxsensor) return(NULL)
+			# obtener un vector de pares de valores
 			intervalos <- split(intervalos, ceiling(seq_along(intervalos)/2))
+			return(intervalos)
+		}
+		if (input$INPUT.elegirSensores != "") {
 
 			if (!is.null(INPUT$calib.x)) {
-				INPUT$calib.x  <<- PrePro.FiltrarSensores(INPUT$calib.x,  intervalos)
+				nmaxsensor <- nrow(INPUT$calib.x)
+				intervalos <- procesarIntervalos(input$INPUT.elegirSensores, nmaxsensor)
+				if (is.null(intervalos)) INPUT$calib.x <<- NULL
+				else INPUT$calib.x  <<- PrePro.FiltrarSensores(INPUT$calib.x,  intervalos)
 			}
+
 			if (!is.null(INPUT$prueba.x)) {
-				INPUT$prueba.x <<- PrePro.FiltrarSensores(INPUT$prueba.x, intervalos)
+				nmaxsensor <- nrow(INPUT$prueba.x)
+				intervalos <- procesarIntervalos(input$INPUT.elegirSensores, nmaxsensor)
+				if (is.null(intervalos)) INPUT$prueba.x <<- NULL
+				else INPUT$prueba.x <<- PrePro.FiltrarSensores(INPUT$prueba.x, intervalos)
 			}
+
 		}
 
 	})
