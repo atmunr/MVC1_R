@@ -74,14 +74,14 @@ ui <- fluidPage( theme = shinytheme('darkly'),
 			sidebarPanel(
 				# elección de métodos de preprocesado
 				checkboxInput( 'PREPRO.centrar', 'Centrar Datos' ),
-				checkboxInput( 'PREPRO.SavitzkyGolay', 'Suavizado Savitzky Golay' ),
+				checkboxInput( 'PREPRO.SavitzkyGolay', 'Suavizado/derivadas (Algoritmo Savitzky Golay)' ),
 				numericInput( 'PREPRO.SavitzkyGolay.ord', 'Orden de derivada',
 					min = 0, max = 2, value = 0 ),
 				numericInput( 'PREPRO.SavitzkyGolay.grad', 'Grado del polinomio',
 					min = 0, max = 5, value = 1 ),
 				numericInput( 'PREPRO.SavitzkyGolay.vlen', 'Largo de la ventana',
 					min = 0, max = 9, value = 1 ),
-				checkboxInput( 'PREPRO.MSC', 'Corrección de Esparcimiento Multiplicativo' ),
+				checkboxInput( 'PREPRO.MSC', 'Corrección de Esparcimiento Multiplicativo (MSC)' ),
 				# botón para realizar el preprocesamieto
 				actionButton( 'PREPRO.aplicar', 'Actualizar' )
 			),
@@ -110,7 +110,7 @@ ui <- fluidPage( theme = shinytheme('darkly'),
 			sidebarPanel(
 				tags$b( 'Construcción del modelo' ),
 				 # elección del algoritmo
-            	selectInput( 'OUTPUT.alg', 'Algoritmo:',
+            	selectInput( 'OUTPUT.pred.alg', 'Algoritmo:',
                 	c('PLS-1' = 'PLS1'
             	)),
 				# elección del número de variables latentes
@@ -118,7 +118,12 @@ ui <- fluidPage( theme = shinytheme('darkly'),
                 	value = 1, min = 1 ),
 				# construcción del modelo
             	actionButton( 'OUTPUT.construirModelo', 'Construir modelo' ),
-				tags$hr(), tags$b( 'Validación del modelo '),
+				# validación del modelo
+				tags$hr(), tags$b( 'Validación Cruzada'),
+				# elección del método de validación
+				selectInput( 'OUTPUT.valid.alg', 'Técnica de Validacón:',
+					c('Leave one out' = 'LOO'
+				)),
 				# elección del número máximo de variables latentes para la
 				# validación
 				numericInput( 'OUTPUT.nvl.max', 'Número Máximo de Variables Latentes',
