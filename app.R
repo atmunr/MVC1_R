@@ -43,10 +43,10 @@ ui <- fluidPage( theme = shinytheme('darkly'),
 		tabPanel( 'Datos de entrada',
 			sidebarPanel(
 				# ingresar de archivos de entrada
-				fileInput( 'calib.x'  , 'Calibración X' ),
-            	fileInput( 'calib.y'  , 'Calibración Y' ),
-            	fileInput( 'prueba.x' ,      'Prueba X' ),
-				fileInput( 'prueba.y' ,      'Prueba Y' ),
+				fileInput( 'calib.x'  , 'Espectros de Calibrado' ),
+            	fileInput( 'calib.y'  , 'Concentraciones de Calibrado' ),
+            	fileInput( 'prueba.x' , 'Espectros de Prueba' ),
+				fileInput( 'prueba.y' , 'Concentraciones de Prueba' ),
 				# elegir de sensores
 				textInput( 'INPUT.elegirSensores', 'Sensores' ),
 				# quitar muestras
@@ -57,18 +57,18 @@ ui <- fluidPage( theme = shinytheme('darkly'),
 			mainPanel(tabsetPanel( # mostrar datos en forma de tabla
 				tabPanel( 'Datos crudos',
 				selectInput( 'INPUT.mostrar.crudo', 'Mostrar:', c(
-				'Calibración X' =  'calib.x',
-				'Calibración Y' =  'calib.y',
-					 'Prueba X' = 'prueba.x',
-					 'Prueba Y' = 'prueba.y'
+					'Espectros de Calibrado' =  'calib.x',
+					'Concentraciones de Calibrado' =  'calib.y',
+					'Espectros de Prueba' = 'prueba.x',
+					'Concentraciones de Prueba' = 'prueba.y'
 				 )), tableOutput( 'INPUT.mostrar.crudo.figura' )
 				),
 				tabPanel( 'Gráfica', # mostrar datos como una gráfica
 				selectInput( 'INPUT.mostrar.grafica', 'Mostrar:', c(
-				'Calibración X' =  'calib.x',
-				'Calibración Y' =  'calib.y',
-					 'Prueba X' = 'prueba.x',
-					 'Prueba Y' = 'prueba.y'
+					'Espectros de Calibrado' =  'calib.x',
+					'Concentraciones de Calibrado' =  'calib.y',
+					'Espectros de Prueba' = 'prueba.x',
+					'Concentraciones de Prueba' = 'prueba.y'
 				)), plotOutput( 'INPUT.mostrar.grafica.figura' )
 				)
 			))
@@ -79,7 +79,7 @@ ui <- fluidPage( theme = shinytheme('darkly'),
 			sidebarPanel(
 				# elegir de algoritmos de preprocesamiento
 				checkboxInput( 'PREPRO.centrar', 'Centrar Datos' ),
-				checkboxInput( 'PREPRO.SavitzkyGolay', 'Suavizado/derivadas (Algoritmo Savitzky Golay)' ),
+				checkboxInput( 'PREPRO.SavitzkyGolay', 'Suavizado/derivadas (Savitzky Golay)' ),
 				numericInput( 'PREPRO.SavitzkyGolay.ord', 'Orden de derivada',
 					min = 0, max = 2, value = 0 ),
 				numericInput( 'PREPRO.SavitzkyGolay.grad', 'Grado del polinomio',
@@ -94,17 +94,17 @@ ui <- fluidPage( theme = shinytheme('darkly'),
 				 # mostrar datos procesados en forma de tabla
 				tabPanel( 'Datos crudos',
 				selectInput( 'PREPRO.mostrar.crudo', 'Mostrar:', c(
-				'Calibración X' =  'calib.x',
-				'Calibración Y' =  'calib.y',
-					 'Prueba X' = 'prueba.x'
+					'Espectros de Calibrado' =  'calib.x',
+					'Concentraciones de Calibrado' =  'calib.y',
+				 	'Espectros de Prueba' = 'prueba.x'
 				)), tableOutput( 'PREPRO.mostrar.crudo.figura' )
 				),
 				 # mostrar datos procesados en forma de gráfica
 				tabPanel( 'Gráfica',
 				selectInput( 'PREPRO.mostrar.grafica', 'Mostrar:', c(
-				'Calibración X' =  'calib.x',
-				'Calibración Y' =  'calib.y',
-					 'Prueba X' = 'prueba.x'
+					'Espectros de Calibrado' =  'calib.x',
+					'Concentraciones de Calibrado' =  'calib.y',
+					'Espectros de Prueba' = 'prueba.x'
 				)), plotOutput( 'PREPRO.mostrar.grafica.figura' )
 				)
 			))
@@ -145,7 +145,7 @@ ui <- fluidPage( theme = shinytheme('darkly'),
 				'Estadística F por Número de Variables Latentes' = 'fstat.nvl',
 				'Probabilidad de la Estadística F por Número de Variables Latentes' = 'probFstat.nvl',
 				'Concentraciones Predichas' = 'concentPred',
-				'Prueba Y' = 'prueba.y'
+				'Concentraciones de Prueba' = 'prueba.y'
 				)), tableOutput( 'OUTPUT.mostrar.crudo.figura' )
 				),
 				 # mostrar resultados de predicción en forma de gráfica
@@ -156,7 +156,7 @@ ui <- fluidPage( theme = shinytheme('darkly'),
 				'Estadística F por Número de Variables Latentes' = 'fstat.nvl',
 				'Probabilidad de la Estadística F por Número de Variables Latentes' = 'probFstat.nvl',
 				'Concentraciones Predichas' = 'concentPred',
-				'Prueba Y' = 'prueba.y'
+				'Concentraciones de Prueba' = 'prueba.y'
 				)), plotOutput( 'OUTPUT.mostrar.grafica.figura' )
 				)
 			))
