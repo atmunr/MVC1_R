@@ -39,14 +39,19 @@ ui <- fluidPage( theme = shinytheme('darkly'),
 	headerPanel( 'Calibración Multivariada' ),
 	tabsetPanel(
 
-		# sección de ingreso de datos y elección de sensores
+		# ingreso de datos, elección de sensores y eleminación de muestras
 		tabPanel( 'Datos de entrada',
-			sidebarPanel( # ingreso de archivos de entrada
+			sidebarPanel(
+				# ingresar de archivos de entrada
 				fileInput( 'calib.x'  , 'Calibración X' ),
             	fileInput( 'calib.y'  , 'Calibración Y' ),
             	fileInput( 'prueba.x' ,      'Prueba X' ),
 				fileInput( 'prueba.y' ,      'Prueba Y' ),
+				# elegir de sensores
 				textInput( 'INPUT.elegirSensores', 'Sensores' ),
+				# quitar muestras
+				textInput( 'INPUT.quitarMuestras', 'Quitar muestras' ),
+				# aplicar cambios
 				actionButton('INPUT.aplicar', 'Actualizar' )
 			),
 			mainPanel(tabsetPanel( # mostrar datos en forma de tabla
@@ -72,7 +77,7 @@ ui <- fluidPage( theme = shinytheme('darkly'),
 		# sección de preprocesamiento de datos
 		tabPanel( 'Preprocesamiento',
 			sidebarPanel(
-				# elección de métodos de preprocesado
+				# elegir de algoritmos de preprocesamiento
 				checkboxInput( 'PREPRO.centrar', 'Centrar Datos' ),
 				checkboxInput( 'PREPRO.SavitzkyGolay', 'Suavizado/derivadas (Algoritmo Savitzky Golay)' ),
 				numericInput( 'PREPRO.SavitzkyGolay.ord', 'Orden de derivada',
@@ -82,7 +87,7 @@ ui <- fluidPage( theme = shinytheme('darkly'),
 				numericInput( 'PREPRO.SavitzkyGolay.vlen', 'Largo de la ventana',
 					min = 0, max = 9, value = 1 ),
 				checkboxInput( 'PREPRO.MSC', 'Corrección de Esparcimiento Multiplicativo (MSC)' ),
-				# botón para realizar el preprocesamieto
+				# aplicar cambios
 				actionButton( 'PREPRO.aplicar', 'Actualizar' )
 			),
 			mainPanel(tabsetPanel(
@@ -186,7 +191,7 @@ server <- function( input, output ) {
 	# definición de datos ingresados a la herramienta:
 	observeEvent( input$INPUT.aplicar, {
 
-		# carga de archivos
+		# cargar archivos
 		if (!is.null( input$calib.x )) {
 			   INPUT$calib.x  <<- as.matrix(read.table((input$calib.x)$datapath))
 		} else INPUT$calib.x  <<- NULL
@@ -203,10 +208,11 @@ server <- function( input, output ) {
 			   INPUT$prueba.y <<- as.matrix(read.table((input$prueba.y)$datapath))
 		} else INPUT$prueba.y <<- NULL
 
-		# elección de sensores:
-		# si son válidos, convertir los intervalos de un string a una vector de
-		# pares de números. si no, igualarlo a NULL
-		procesarIntervalos <- function( intervalos, nmaxsensor ) {
+		# toma un string con intervalos de números y, si son válidos, los
+		# convierte a un vector de pares de números. Si no, devuelve NULL.
+		# verifica que los intervalos representan un subconjunto de valores
+		# del rango [1,N]
+		procesarIntervalos <- function( intervalos, nmax ) {
 			# verificar que solo hayan números o espacios
 			if (grepl("^[0-9 ]+$", intervalos) == FALSE) return(NULL)
 			# quitar espacios al principio y fin y unir espacios consecutivos en uno
@@ -218,30 +224,28 @@ server <- function( input, output ) {
 			if (length(intervalos) %% 2 != 0) return(NULL)
 			# obtener un vector de números
 			intervalos <- strtoi(intervalos)
-			# verificar que sean valores enteros
-			#if (!is.integer(intervalos)) return(NULL)
-			# verificar que sean subintervalos del rango total de sensores
-			if (min(intervalos) < 1 || max(intervalos) > nmaxsensor) return(NULL)
+			# verificar que sean subintervalos del rango [1,N]
+			if (min(intervalos) < 1 || max(intervalos) > nmax) return(NULL)
 			# obtener un vector de pares de valores
 			intervalos <- split(intervalos, ceiling(seq_along(intervalos)/2))
 			return(intervalos)
 		}
-		if (input$INPUT.elegirSensores != "") {
 
-			if (!is.null(INPUT$calib.x)) {
-				nmaxsensor <- nrow(INPUT$calib.x)
-				intervalos <- procesarIntervalos(input$INPUT.elegirSensores, nmaxsensor)
-				if (is.null(intervalos)) INPUT$calib.x <<- NULL
-				else INPUT$calib.x  <<- PrePro.FiltrarSensores(INPUT$calib.x,  intervalos)
+		# elegir sensores
+		if (!is.null(INPUT$calib.x)) {
+			if (input$INPUT.elegirSensores != "") {
+				sensores <- procesarIntervalos(input$INPUT.elegirSensores, nrow(INPUT$calib.x))
+				if (is.null(sensores)) INPUT$calib.x <<- NULL
+				else INPUT$calib.x  <<- PrePro.FiltrarSensores(INPUT$calib.x, sensores)
 			}
+		}
 
-			if (!is.null(INPUT$prueba.x)) {
-				nmaxsensor <- nrow(INPUT$prueba.x)
-				intervalos <- procesarIntervalos(input$INPUT.elegirSensores, nmaxsensor)
-				if (is.null(intervalos)) INPUT$prueba.x <<- NULL
-				else INPUT$prueba.x <<- PrePro.FiltrarSensores(INPUT$prueba.x, intervalos)
+		if (!is.null(INPUT$prueba.x)) {
+			if (input$INPUT.elegirSensores != "") {
+				sensores <- procesarIntervalos(input$INPUT.elegirSensores, nrow(INPUT$prueba.x))
+				if (is.null(sensores)) INPUT$prueba.x <<- NULL
+				else INPUT$prueba.x  <<- PrePro.FiltrarSensores(INPUT$prueba.x, sensores)
 			}
-
 		}
 
 	})
