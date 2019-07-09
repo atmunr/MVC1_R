@@ -96,9 +96,8 @@ PrePro.MSC <- function( calib.x, prueba.x ) {
 	return (list(calib.x, prueba.x))
 }
 
-# toma un grupo espectros y deja solamente los valores de un subconjunto de
-# los sensores, expresados como una lista de intervalos cerrados ( [a,b] )
-# intervalos: vector de vectores
+# toma unos espectros y deja sólamente los sensores indicados por la variable 'intervalos'
+# 'intervalos' es un vector de pares de números
 PrePro.FiltrarSensores <- function( espectros, intervalos ) {
 
 	nsensores <- 0 # número de sensores los espectros filtrados
@@ -119,5 +118,22 @@ PrePro.FiltrarSensores <- function( espectros, intervalos ) {
 		}
 	}
 	return (espec.filt)
+}
 
+# toma unos espectros y quita las muestras indicadas por la variable 'intervalos'
+# 'intervalos' es un vector de pares de números
+PrePro.QuitarMuestras <- function( espectros, intervalos ) {
+
+	quitar <- vector() # muestras a quitar
+	for (intervalo in intervalos) {
+		for (i in intervalo[1] : intervalo[2]) {
+			quitar <- append(quitar, i)
+		}
+	}
+	quitar <- unique(quitar) # por si se ingresaron intervalos con intersección
+
+	for (i in rev(sort(quitar))) { # iterar de la última muestra a la primera
+		espectros <- espectros[,-i]
+	}
+	return(espectros)
 }

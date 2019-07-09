@@ -231,20 +231,31 @@ server <- function( input, output ) {
 			return(intervalos)
 		}
 
-		# elegir sensores
+		# quitar sensores y muestras en espectros de calibrado
 		if (!is.null(INPUT$calib.x)) {
 			if (input$INPUT.elegirSensores != "") {
 				sensores <- procesarIntervalos(input$INPUT.elegirSensores, nrow(INPUT$calib.x))
 				if (is.null(sensores)) INPUT$calib.x <<- NULL
 				else INPUT$calib.x  <<- PrePro.FiltrarSensores(INPUT$calib.x, sensores)
 			}
+			if (input$INPUT.quitarMuestras != "") {
+				muestras <- procesarIntervalos(input$INPUT.quitarMuestras, ncol(INPUT$calib.x))
+				if (is.null(muestras)) INPUT$calib.x <<- NULL
+				else INPUT$calib.x  <<- PrePro.QuitarMuestras(INPUT$calib.x, muestras)
+			}
 		}
 
+		# quitar sensores y muestras en espectros de prueba
 		if (!is.null(INPUT$prueba.x)) {
 			if (input$INPUT.elegirSensores != "") {
 				sensores <- procesarIntervalos(input$INPUT.elegirSensores, nrow(INPUT$prueba.x))
 				if (is.null(sensores)) INPUT$prueba.x <<- NULL
 				else INPUT$prueba.x  <<- PrePro.FiltrarSensores(INPUT$prueba.x, sensores)
+			}
+			if (input$INPUT.quitarMuestras != "") {
+				muestras <- procesarIntervalos(input$INPUT.quitarMuestras, ncol(INPUT$prueba.x))
+				if (is.null(muestras)) INPUT$prueba.x <<- NULL
+				else INPUT$prueba.x  <<- PrePro.QuitarMuestras(INPUT$prueba.x, muestras)
 			}
 		}
 
