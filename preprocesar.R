@@ -122,7 +122,7 @@ PrePro.FiltrarSensores <- function( espectros, intervalos ) {
 
 # toma unos espectros y quita las muestras indicadas por la variable 'intervalos'
 # 'intervalos' es un vector de pares de números
-PrePro.QuitarMuestras <- function( espectros, intervalos ) {
+PrePro.QuitarMuestras.Espectro <- function( espectros, intervalos ) {
 
 	quitar <- vector() # muestras a quitar
 	for (intervalo in intervalos) {
@@ -136,4 +136,22 @@ PrePro.QuitarMuestras <- function( espectros, intervalos ) {
 		espectros <- espectros[,-i]
 	}
 	return(espectros)
+}
+
+# toma unas concentraciones y quita las muestras indicadas por la variable 'intervalos'
+# 'intervalos' es un vector de pares de números
+PrePro.QuitarMuestras.Concent <- function( concentraciones, intervalos ) {
+
+	quitar <- vector() # muestras a quitar
+	for (intervalo in intervalos) {
+		for (i in intervalo[1] : intervalo[2]) {
+			quitar <- append(quitar, i)
+		}
+	}
+	quitar <- unique(quitar) # por si se ingresaron intervalos con intersección
+
+	for (i in rev(sort(quitar))) { # iterar de la última muestra a la primera
+		concentraciones <- matrix(concentraciones[-i,], ncol=1)
+	}
+	return(concentraciones)
 }

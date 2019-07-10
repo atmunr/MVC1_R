@@ -55,7 +55,8 @@ ui <- fluidPage( theme = shinytheme('darkly'),
 				# elegir de sensores
 				textInput( 'INPUT.elegirSensores', 'Sensores' ),
 				# quitar muestras
-				textInput( 'INPUT.quitarMuestras', 'Quitar muestras' ),
+				textInput( 'INPUT.quitarMuestras.calib', 'Quitar muestras de calibrado' ),
+				textInput( 'INPUT.quitarMuestras.prueba', 'Quitar muestras de prueba' ),
 				# aplicar cambios
 				actionButton('INPUT.aplicar', 'Actualizar' )
 			),
@@ -197,6 +198,19 @@ server <- function( input, output ) {
 	# definición de datos ingresados a la herramienta:
 	observeEvent( input$INPUT.aplicar, {
 
+		# nulificar valores que dependen de INPUT
+		PREPRO$calib.x             <<- NULL
+		PREPRO$calib.y             <<- NULL
+		PREPRO$prueba.x            <<- NULL
+		PREPRO$calib.x.especProm   <<- NULL
+		PREPRO$calib.y.concentProm <<- NULL
+		OUTPUT$coefRegr            <<- NULL
+		OUTPUT$press.nvl           <<- NULL
+		OUTPUT$fstat.nvl           <<- NULL
+		OUTPUT$probFstat.nvl       <<- NULL
+		OUTPUT$concentPred         <<- NULL
+		ESTAD$errores              <<- NULL
+
 		# cargar archivos
 		if (!is.null( input$calib.x )) {
 			   INPUT$calib.x  <<- as.matrix(read.table((input$calib.x)$datapath))
@@ -237,31 +251,44 @@ server <- function( input, output ) {
 			return(intervalos)
 		}
 
-		# quitar sensores y muestras en espectros de calibrado
-		if (!is.null(INPUT$calib.x)) {
-			if (input$INPUT.elegirSensores != "") {
+		# quitar sensores
+		if (input$INPUT.elegirSensores != "") {
+			if (!is.null(INPUT$calib.x)) {
 				sensores <- procesarIntervalos(input$INPUT.elegirSensores, nrow(INPUT$calib.x))
 				if (is.null(sensores)) INPUT$calib.x <<- NULL
 				else INPUT$calib.x  <<- PrePro.FiltrarSensores(INPUT$calib.x, sensores)
 			}
-			if (input$INPUT.quitarMuestras != "") {
-				muestras <- procesarIntervalos(input$INPUT.quitarMuestras, ncol(INPUT$calib.x))
-				if (is.null(muestras)) INPUT$calib.x <<- NULL
-				else INPUT$calib.x  <<- PrePro.QuitarMuestras(INPUT$calib.x, muestras)
-			}
-		}
-
-		# quitar sensores y muestras en espectros de prueba
-		if (!is.null(INPUT$prueba.x)) {
-			if (input$INPUT.elegirSensores != "") {
+			if (!is.null(INPUT$prueba.x)) {
 				sensores <- procesarIntervalos(input$INPUT.elegirSensores, nrow(INPUT$prueba.x))
 				if (is.null(sensores)) INPUT$prueba.x <<- NULL
 				else INPUT$prueba.x  <<- PrePro.FiltrarSensores(INPUT$prueba.x, sensores)
 			}
-			if (input$INPUT.quitarMuestras != "") {
-				muestras <- procesarIntervalos(input$INPUT.quitarMuestras, ncol(INPUT$prueba.x))
+		}
+
+		# quitar muestras de calibrado
+		if (input$INPUT.quitarMuestras.calib != "") {
+			if (!is.null(INPUT$calib.x)) {
+				muestras <- procesarIntervalos(input$INPUT.quitarMuestras.calib, ncol(INPUT$calib.x))
+				if (is.null(muestras)) INPUT$calib.x <<- NULL
+				else INPUT$calib.x  <<- PrePro.QuitarMuestras.Espectro(INPUT$calib.x, muestras)
+			}
+			if (!is.null(INPUT$calib.y)) {
+				muestras <- procesarIntervalos(input$INPUT.quitarMuestras.calib, nrow(INPUT$calib.y))
+				if (is.null(muestras)) INPUT$calib.y <<- NULL
+				else INPUT$calib.y  <<- PrePro.QuitarMuestras.Concent(INPUT$calib.y, muestras)
+			}
+		}
+		# quitar muestras de prueba
+		if (input$INPUT.quitarMuestras.prueba != "") {
+			if (!is.null(INPUT$prueba.x)) {
+				muestras <- procesarIntervalos(input$INPUT.quitarMuestras.prueba, ncol(INPUT$prueba.x))
 				if (is.null(muestras)) INPUT$prueba.x <<- NULL
-				else INPUT$prueba.x  <<- PrePro.QuitarMuestras(INPUT$prueba.x, muestras)
+				else INPUT$prueba.x  <<- PrePro.QuitarMuestras.Espectro(INPUT$prueba.x, muestras)
+			}
+			if (!is.null(INPUT$prueba.y)) {
+				muestras <- procesarIntervalos(input$INPUT.quitarMuestras.prueba, nrow(INPUT$prueba.y))
+				if (is.null(muestras)) INPUT$prueba.y <<- NULL
+				else INPUT$prueba.y  <<- PrePro.QuitarMuestras.Concent(INPUT$prueba.y, muestras)
 			}
 		}
 
@@ -321,6 +348,14 @@ server <- function( input, output ) {
 
 	# preprocesamiento de los datos de entrada
 	observeEvent( input$PREPRO.aplicar, {
+
+		# nulificar valores que dependen de PREPRO
+		OUTPUT$coefRegr            <<- NULL
+		OUTPUT$press.nvl           <<- NULL
+		OUTPUT$fstat.nvl           <<- NULL
+		OUTPUT$probFstat.nvl       <<- NULL
+		OUTPUT$concentPred         <<- NULL
+		ESTAD$errores              <<- NULL
 
 		# existen los datos preprocesados si se cargaron los datos necesarios
 		# por defecto, calib.x preprocesado es calib.x
@@ -444,6 +479,9 @@ server <- function( input, output ) {
 	# construcción del modelo con los datos de preprocesados y
 	# predicción de las concentraciones
 	observeEvent( input$OUTPUT.construirModelo, {
+		# nulificar valores que dependen de OUTPUT
+		ESTAD$errores              <<- NULL
+
 		if (!is.null(PREPRO$calib.x) && !is.null(PREPRO$calib.y)) {
 		# obtiene los coeficientes como una matriz columna
 		OUTPUT$coefRegr <<- CalcularCoefRegr.PLS1(
