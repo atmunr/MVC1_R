@@ -61,21 +61,21 @@ ui <- fluidPage( theme = shinytheme('darkly'),
 				actionButton('INPUT.aplicar', 'Actualizar' )
 			),
 			mainPanel(tabsetPanel( # mostrar datos en forma de tabla
-				tabPanel( 'Datos crudos',
-				selectInput( 'INPUT.mostrar.crudo', 'Mostrar:', c(
-					'Espectros de Calibrado' =  'calib.x',
-					'Concentraciones de Calibrado' =  'calib.y',
-					'Espectros de Prueba' = 'prueba.x',
-					'Concentraciones de Prueba' = 'prueba.y'
-				 )), tableOutput( 'INPUT.mostrar.crudo.figura' )
-				),
 				tabPanel( 'Gráfica', # mostrar datos como una gráfica
 				selectInput( 'INPUT.mostrar.grafica', 'Mostrar:', c(
-					'Espectros de Calibrado' =  'calib.x',
-					'Concentraciones de Calibrado' =  'calib.y',
-					'Espectros de Prueba' = 'prueba.x',
-					'Concentraciones de Prueba' = 'prueba.y'
+				'Espectros de Calibrado' =  'calib.x',
+				'Concentraciones de Calibrado' =  'calib.y',
+				'Espectros de Prueba' = 'prueba.x',
+				'Concentraciones de Prueba' = 'prueba.y'
 				)), plotOutput( 'INPUT.mostrar.grafica.figura' )
+				),
+				tabPanel( 'Datos crudos',
+				selectInput( 'INPUT.mostrar.crudo', 'Mostrar:', c(
+				'Espectros de Calibrado' =  'calib.x',
+				'Concentraciones de Calibrado' =  'calib.y',
+				'Espectros de Prueba' = 'prueba.x',
+				'Concentraciones de Prueba' = 'prueba.y'
+				)), tableOutput( 'INPUT.mostrar.crudo.figura' )
 				)
 			))
   		),
@@ -97,21 +97,21 @@ ui <- fluidPage( theme = shinytheme('darkly'),
 				actionButton( 'PREPRO.aplicar', 'Actualizar' )
 			),
 			mainPanel(tabsetPanel(
-				 # mostrar datos procesados en forma de tabla
-				tabPanel( 'Datos crudos',
-				selectInput( 'PREPRO.mostrar.crudo', 'Mostrar:', c(
-					'Espectros de Calibrado' =  'calib.x',
-					'Concentraciones de Calibrado' =  'calib.y',
-				 	'Espectros de Prueba' = 'prueba.x'
-				)), tableOutput( 'PREPRO.mostrar.crudo.figura' )
-				),
-				 # mostrar datos procesados en forma de gráfica
+				# mostrar datos procesados en forma de gráfica
 				tabPanel( 'Gráfica',
 				selectInput( 'PREPRO.mostrar.grafica', 'Mostrar:', c(
-					'Espectros de Calibrado' =  'calib.x',
-					'Concentraciones de Calibrado' =  'calib.y',
-					'Espectros de Prueba' = 'prueba.x'
+				'Espectros de Calibrado' =  'calib.x',
+				'Concentraciones de Calibrado' =  'calib.y',
+				'Espectros de Prueba' = 'prueba.x'
 				)), plotOutput( 'PREPRO.mostrar.grafica.figura' )
+				),
+				# mostrar datos procesados en forma de tabla
+				tabPanel( 'Datos crudos',
+				selectInput( 'PREPRO.mostrar.crudo', 'Mostrar:', c(
+				'Espectros de Calibrado' =  'calib.x',
+				'Concentraciones de Calibrado' =  'calib.y',
+				'Espectros de Prueba' = 'prueba.x'
+				)), tableOutput( 'PREPRO.mostrar.crudo.figura' )
 				)
 			))
   		),
@@ -143,18 +143,7 @@ ui <- fluidPage( theme = shinytheme('darkly'),
 				actionButton( 'OUTPUT.validarModelo', 'Validar modelo' )
 			),
 			mainPanel(tabsetPanel(
-				 # mostrar resultados de predicción en forma de tabla
-				tabPanel( 'Datos crudos',
-				selectInput( 'OUTPUT.mostrar.crudo', 'Mostrar:', c(
-				'Coeficientes de Regresión' = 'coefRegr',
-				'PRESS por Número de Variables Latentes' =  'press.nvl',
-				'Estadística F por Número de Variables Latentes' = 'fstat.nvl',
-				'Probabilidad de la Estadística F por Número de Variables Latentes' = 'probFstat.nvl',
-				'Concentraciones Predichas' = 'concentPred',
-				'Concentraciones de Prueba' = 'prueba.y'
-				)), tableOutput( 'OUTPUT.mostrar.crudo.figura' )
-				),
-				 # mostrar resultados de predicción en forma de gráfica
+				# mostrar resultados de predicción en forma de gráfica
 				tabPanel( 'Gráfica',
 				selectInput( 'OUTPUT.mostrar.grafica', 'Mostrar:', c(
 				'Coeficientes de Regresión' =  'coefRegr',
@@ -164,7 +153,18 @@ ui <- fluidPage( theme = shinytheme('darkly'),
 				'Concentraciones Predichas' = 'concentPred',
 				'Concentraciones de Prueba' = 'prueba.y'
 				)), plotOutput( 'OUTPUT.mostrar.grafica.figura' )
-				)
+				),
+				# mostrar resultados de predicción en forma de tabla
+			  	tabPanel( 'Datos crudos',
+				selectInput( 'OUTPUT.mostrar.crudo', 'Mostrar:', c(
+			  	'Coeficientes de Regresión' = 'coefRegr',
+			   	'PRESS por Número de Variables Latentes' =  'press.nvl',
+			  	'Estadística F por Número de Variables Latentes' = 'fstat.nvl',
+			   	'Probabilidad de la Estadística F por Número de Variables Latentes' = 'probFstat.nvl',
+			   	'Concentraciones Predichas' = 'concentPred',
+			   	'Concentraciones de Prueba' = 'prueba.y'
+			   	)), tableOutput( 'OUTPUT.mostrar.crudo.figura' )
+			   	)
 			))
   		),
 		# estadísticas sobre la calidad de la predicción
