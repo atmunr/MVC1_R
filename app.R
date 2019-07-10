@@ -33,6 +33,11 @@ OUTPUT$probFstat.nvl <- NULL
  # las concentraciones que predice la calibrado multivariada
 OUTPUT$concentPred    <- NULL
 
+ # datos estadísticos sobre la predicción
+ESTAD <- reactiveValues()
+ # diferencia entre valor predicho y nominal para cada muestra
+ESTAD$errores <- NULL
+
 # defición de la interfaz gráfica
 ui <- fluidPage( theme = shinytheme('darkly'),
 
@@ -178,7 +183,8 @@ ui <- fluidPage( theme = shinytheme('darkly'),
 			),
 			mainPanel(
  				selectInput( 'ESTAD.mostrar.grafica', 'Mostrar:', c(
- 				'Concentraciones esperadas y predichas' = 'prueba.y.vs.concentPred'
+ 				'Concentraciones predichas en función de nominales' = 'concentPred.vs.prueba.y',
+ 				'Errores en función de concentraciones predichas' = 'error.vs.concentPred'
 				)), plotOutput( 'ESTAD.mostrar.grafica' )
 			)
   		)
@@ -541,18 +547,41 @@ server <- function( input, output ) {
 		})}
 	})
 
+	# datos estadísticos sobre la calidad de la prediccón
+	observe({
+		# error asociado a cada muestra
+		if (!is.null(INPUT$prueba.y) && !is.null(OUTPUT$concentPred)) {
+			   ESTAD$errores <<- INPUT$prueba.y - OUTPUT$concentPred
+		} else ESTAD$errores <<- NULL
+	})
+
 	# visualizaciones de los datos estadísticos sobre la calidad de la prediccón
 	observe({
-		if (input$ESTAD.mostrar.grafica == 'prueba.y.vs.concentPred') {
+
+		# valores predichos en función de nominales
+		if (input$ESTAD.mostrar.grafica == 'concentPred.vs.prueba.y') {
 			if ( is.null( OUTPUT$concentPred) || is.null(INPUT$prueba.y)) {
 				   output$ESTAD.mostrar.grafica <- NULL }
 			else { output$ESTAD.mostrar.grafica <- renderPlot({
-				plot( OUTPUT$concentPred, INPUT$prueba.y,
- 					xlab = 'Valores Nominales', ylab = 'Valores Predichos',
+				plot( INPUT$prueba.y, OUTPUT$concentPred,
+ 					xlab = 'Concentraciones Nominales', ylab = 'Concentraciones Predichas',
 				 	bg = 'black', pch = 20, cex = 1.3 )
-				lines(1 : length(OUTPUT$concentPred))
+				lines(1 : length(INPUT$prueba.y))
 			})}
 		}
+
+		# errores en función de valores predichos
+		if (input$ESTAD.mostrar.grafica == 'error.vs.concentPred') {
+			if ( is.null( ESTAD$errores) || is.null(INPUT$prueba.y)) {
+				   output$ESTAD.mostrar.grafica <- NULL }
+			else { output$ESTAD.mostrar.grafica <- renderPlot({
+				plot( OUTPUT$concentPred, ESTAD$errores,
+ 					xlab = 'Concentraciones Predichas', ylab = 'Errores Asociados',
+				 	bg = 'black', pch = 20, cex = 1.3 )
+				lines(numeric(length(OUTPUT$concentPred)))
+			})}
+		}
+
 	})
 
 }
