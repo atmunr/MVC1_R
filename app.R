@@ -23,7 +23,7 @@ PREPRO$calib.y.concentProm <- NULL
 
  # resultados de la calibrado multivariada
 OUTPUT <- reactiveValues()
-OUTPUT$coefRegr       <- NULL # coeficientes de regresión
+OUTPUT$coefRegr      <- NULL # coeficientes de regresión
  # error ESTADístico PRESS para cada número de variables latentes
 OUTPUT$press.nvl     <- NULL
  # ESTADística F producida con los valores PRESS para cada número de variables latentes
@@ -31,12 +31,14 @@ OUTPUT$fstat.nvl     <- NULL
  # probabilidad de obtener cada ESTADística F
 OUTPUT$probFstat.nvl <- NULL
  # las concentraciones que predice la calibrado multivariada
-OUTPUT$concentPred    <- NULL
+OUTPUT$concentPred   <- NULL
 
  # datos estadísticos sobre la predicción
 ESTAD <- reactiveValues()
  # diferencia entre valor predicho y nominal para cada muestra
 ESTAD$errores <- NULL
+ESTAD$RMSEP   <- NULL
+ESTAD$REP   <- NULL
 
 # defición de la interfaz gráfica
 ui <- fluidPage( theme = shinytheme('darkly'),
@@ -170,17 +172,9 @@ ui <- fluidPage( theme = shinytheme('darkly'),
 		# estadísticas sobre la calidad de la predicción
 		tabPanel( 'Estadísticas',
 			sidebarPanel(
-				tags$b('Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-				sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'),
-				tags$hr(),
-				tags$b('Ut enim ad minim veniam, quis nostrud exercitation ullamco
-				laboris nisi ut aliquip ex ea commodo consequat.'),
-				tags$hr(),
-				tags$b('Duis aute irure dolor in reprehenderit in voluptate velit
-				esse cillum dolore eu fugiat nulla pariatur.'),
-				tags$hr(),
-				tags$b('Excepteur sint occaecat cupidatat non proident, sunt in
-				culpa qui officia deserunt mollit anim id est laborum.')
+				tags$b('RMSEP: '), textOutput( 'ESTAD.mostrar.RMSEP', inline=TRUE ), tags$br(),
+				tags$b('REP: '  ), textOutput( 'ESTAD.mostrar.REP'  , inline=TRUE ), tags$br(),
+				tags$hr()
 			),
 			mainPanel(
  				selectInput( 'ESTAD.mostrar.grafica', 'Mostrar:', c(
@@ -587,10 +581,25 @@ server <- function( input, output ) {
 
 	# datos estadísticos sobre la calidad de la prediccón
 	observe({
+
 		# error asociado a cada muestra
 		if (!is.null(INPUT$prueba.y) && !is.null(OUTPUT$concentPred)) {
 			   ESTAD$errores <<- INPUT$prueba.y - OUTPUT$concentPred
 		} else ESTAD$errores <<- NULL
+
+		# "root mean square error of prediction"
+		if (!is.null(ESTAD$errores) && !is.null(INPUT$prueba.y)) {
+			   ESTAD$RMSEP <<- sqrt(sum(ESTAD$errores^2) / nrow(INPUT$prueba.y))
+		} else ESTAD$RMSEP <<- NULL
+
+		# "relative error of prediction"
+		if (!is.null(ESTAD$RMSEP) && !is.null(INPUT$calib.y)) {
+			   ESTAD$REP <<- 100 * (ESTAD$RMSEP / mean(INPUT$calib.y))
+		} else ESTAD$REP <<- NULL
+
+		output$ESTAD.mostrar.RMSEP <- renderText(ESTAD$RMSEP)
+		output$ESTAD.mostrar.REP   <- renderText(ESTAD$REP)
+
 	})
 
 	# visualizaciones de los datos estadísticos sobre la calidad de la prediccón
