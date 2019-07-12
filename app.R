@@ -173,15 +173,23 @@ ui <- fluidPage( theme = shinytheme('darkly'),
 		tabPanel( 'Estadísticas',
 			sidebarPanel(
 				tags$b('RMSEP: '), textOutput( 'ESTAD.mostrar.RMSEP', inline=TRUE ), tags$br(),
+				tags$hr(),
 				tags$b('REP: '  ), textOutput( 'ESTAD.mostrar.REP'  , inline=TRUE ), tags$br(),
 				tags$hr()
 			),
-			mainPanel(
+			mainPanel(tabsetPanel(
+				tabPanel( 'Gráfica',
  				selectInput( 'ESTAD.mostrar.grafica', 'Mostrar:', c(
  				'Concentraciones predichas en función de nominales' = 'concentPred.vs.prueba.y',
  				'Errores en función de concentraciones predichas' = 'error.vs.concentPred'
 				)), plotOutput( 'ESTAD.mostrar.grafica' )
-			)
+				),
+				tabPanel( 'Datos crudos',
+				selectInput( 'ESTAD.mostrar.crudo', 'Mostrar:', c(
+ 				'Concentraciones nominales, restadas las predichas' = 'concentPred.vs.prueba.y'
+				)), tableOutput( 'ESTAD.mostrar.crudo' )
+				)
+			))
   		)
 	)
 )
@@ -604,6 +612,11 @@ server <- function( input, output ) {
 
 	# visualizaciones de los datos estadísticos sobre la calidad de la prediccón
 	observe({
+
+		output$ESTAD.mostrar.crudo <- renderTable(
+			switch(input$ESTAD.mostrar.crudo,
+			 'concentPred.vs.prueba.y' = ESTAD$errores
+		))
 
 		# valores predichos en función de nominales
 		if (input$ESTAD.mostrar.grafica == 'concentPred.vs.prueba.y') {
