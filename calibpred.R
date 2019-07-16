@@ -138,3 +138,26 @@ CalcularNumOptVarLat.LOO.PLS1 <- function( calib.x, calib.y, nvl.max, centrar ) 
 	return (-1)
 
 }
+
+# toma unos espectros y concentraciones de calibrado, y con un número de
+# variables latentes toma unos espectros de prueba y devuelve unas
+# concentraciones predichas por regresión sobre componentes principales (PCR)
+PredecirConcent.PCR <- function( calib.x, calib.y, test.x, nvl ) {
+
+	calib.x.pca  <- prcomp(calib.x) # análisis de componentes principales (PCA)
+	cargas   <- calib.x.pca$rotation
+	puntajes <- calib.x.pca$x
+
+	# coeficientes de regresión
+	coef.regr <- cargas[,1:nvl] * t(solve(t(T[,1:nvl]) * T[,1:nvl])) * calib.y
+
+	# valor de retorno: concentraciones predichas
+	test.y <- matrix(nrow = ncol(test.x))
+
+	for (i in 1 : ncol(test.x)) {
+		test.y[i,] <- test.x[,i] * t(coef.regr)
+	}
+
+	return(test.y)
+
+}
