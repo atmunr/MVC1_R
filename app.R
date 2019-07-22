@@ -41,9 +41,9 @@ ESTAD$RMSEP   <- NULL
 ESTAD$REP   <- NULL
 
 # defición de la interfaz gráfica
-ui <- fluidPage( theme = shinytheme('darkly'),
+ui <- fluidPage( #theme = shinytheme('darkly'),
 
-	headerPanel( 'Calibración Multivariada' ),
+	headerPanel( 'Calibración Multivariada :)' ),
 	tabsetPanel(
 
 		# ingreso de datos, elección de sensores y eleminación de muestras
@@ -124,7 +124,8 @@ ui <- fluidPage( theme = shinytheme('darkly'),
 				tags$b( 'Construcción del modelo' ),
 				 # elección del algoritmo
             	selectInput( 'OUTPUT.pred.alg', 'Algoritmo:',
-                	c('PLS-1' = 'PLS1'
+                	c('PLS-1' = 'PLS1'#,
+                	  #'PCR'   = 'PCR'
             	)),
 				# elección del número de variables latentes
             	numericInput( 'OUTPUT.nvl', 'Variables Latentes',
@@ -482,24 +483,34 @@ server <- function( input, output ) {
 	# predicción de las concentraciones
 	observeEvent( input$OUTPUT.construirModelo, {
 		# nulificar valores que dependen de OUTPUT
-		ESTAD$errores              <<- NULL
+		ESTAD$errores <<- NULL
 
-		if (!is.null(PREPRO$calib.x) && !is.null(PREPRO$calib.y)) {
-		# obtiene los coeficientes como una matriz columna
-		OUTPUT$coefRegr <<- CalcularCoefRegr.PLS1(
-			PREPRO$calib.x, PREPRO$calib.y, input$OUTPUT.nvl)
-		# obtiene las concentraciones de predicción
-		if (!is.null(PREPRO$prueba.x)) {
-			# multiplica cada espectro de prueba por los coeficientes para
-			# obtener las concentraciones
-			OUTPUT$concentPred <<- t(PREPRO$prueba.x) %*% OUTPUT$coefRegr
-			# si se centraron los datos, se tiene que decentralizar las
-			# concentraciones de prediccón sumándoles el promedio de las
-			# concentraciones de prueba
-			if (input$PREPRO.centrar == TRUE) {
-				OUTPUT$concentPred <<- OUTPUT$concentPred + PREPRO$calib.y.concentProm
+		if (input$OUTPUT.pred.alg == 'PLS1') {
+			if (!is.null(PREPRO$calib.x) && !is.null(PREPRO$calib.y)) {
+			# obtiene los coeficientes como una matriz columna
+			OUTPUT$coefRegr <<- CalcularCoefRegr.PLS1(
+				PREPRO$calib.x, PREPRO$calib.y, input$OUTPUT.nvl)
+			# obtiene las concentraciones de predicción
+			if (!is.null(PREPRO$prueba.x)) {
+				# multiplica cada espectro de prueba por los coeficientes para
+				# obtener las concentraciones
+				OUTPUT$concentPred <<- t(PREPRO$prueba.x) %*% OUTPUT$coefRegr
 			}
 		}
+
+		if (input$OUTPUT.pred.alg == 'PCR') {
+			if (!is.null(PREPRO$calib.x) && !is.null(PREPRO$caliby.x)
+			 && !is.null(PREPRO$prueba.x)) {
+				 OUTPUT$concentPred <<- PredecirConcent.PCR( PREPRO$calib.x,
+				 	PREPRO$calib.y, PREPRO$test.x, input$OUTPUT.nvl)
+			 }
+		}
+
+		# descentralizar
+		if (input$PREPRO.centrar == TRUE && !is.null(OUTPUT$concentPred)) {
+			OUTPUT$concentPred <<- OUTPUT$concentPred + PREPRO$calib.y.concentProm
+		}
+
 	}})
 
 	# validación del modelo:

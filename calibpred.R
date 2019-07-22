@@ -80,7 +80,7 @@ ValidarModelo.LOO.PLS1 <- function( calib.x, calib.y, nvl.max, centrar ) {
 			# valor de la muestra aislada y se suma el error cuadrado al PRESS
 			# para este número de variables latentes
 			coef.regr <- as.vector(CalcularCoefRegr.PLS1(calib.x.p, calib.y.p, nvl))
-			concent.ais.pred <- espect.ais %*% coef.regr
+			concent.ais.pred <- coef.regr %*% espect.ais
 			press.vals[nvl]  <- press.vals[nvl] + ((concent.ais.pred - concent.ais)^2)
 
 		}
