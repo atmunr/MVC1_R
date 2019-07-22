@@ -121,19 +121,8 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 		# sección de construcción y validación del modelo y predicción
 		tabPanel( 'Datos de salida',
 			sidebarPanel(
-				tags$b( 'Construcción del modelo' ),
-				 # elección del algoritmo
-            	selectInput( 'OUTPUT.pred.alg', 'Algoritmo:',
-                	c('PLS-1' = 'PLS1'#,
-                	  #'PCR'   = 'PCR'
-            	)),
-				# elección del número de variables latentes
-            	numericInput( 'OUTPUT.nvl', 'Variables Latentes',
-                	value = 1, min = 1 ),
-				# construcción del modelo
-            	actionButton( 'OUTPUT.construirModelo', 'Construir modelo' ),
 				# validación del modelo
-				tags$hr(), tags$b( 'Validación Cruzada'),
+				tags$b( 'Validación Cruzada'),
 				# elección del método de validación
 				selectInput( 'OUTPUT.valid.alg', 'Técnica de Validacón:',
 					c('Leave one out' = 'LOO'
@@ -143,16 +132,27 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 				numericInput( 'OUTPUT.nvl.max', 'Número Máximo de Variables Latentes',
                 	value = 1, min = 1 ),
 				# validación del modelo
-				actionButton( 'OUTPUT.validarModelo', 'Validar modelo' )
+				actionButton( 'OUTPUT.validarModelo', 'Validar modelo' ),
+				tags$hr(), tags$b( 'Construcción del modelo' ),
+				 # elección del algoritmo
+            	selectInput( 'OUTPUT.pred.alg', 'Algoritmo:',
+                	c('PLS-1' = 'PLS1'#,
+                	  #'PCR'   = 'PCR'
+            	)),
+				# elección del número de variables latentes
+            	numericInput( 'OUTPUT.nvl', 'Variables Latentes',
+                	value = 1, min = 1 ),
+				# construcción del modelo
+            	actionButton( 'OUTPUT.construirModelo', 'Construir modelo' )
 			),
 			mainPanel(tabsetPanel(
 				# mostrar resultados de predicción en forma de gráfica
 				tabPanel( 'Gráfica',
 				selectInput( 'OUTPUT.mostrar.grafica', 'Mostrar:', c(
-				'Coeficientes de Regresión' =  'coefRegr',
 				'PRESS por Número de Variables Latentes' =  'press.nvl',
 				'Estadística F por Número de Variables Latentes' = 'fstat.nvl',
 				'Probabilidad de la Estadística F por Número de Variables Latentes' = 'probFstat.nvl',
+				'Coeficientes de Regresión' =  'coefRegr',
 				'Concentraciones Predichas' = 'concentPred',
 				'Concentraciones de Prueba' = 'prueba.y'
 				)), plotOutput( 'OUTPUT.mostrar.grafica.figura' )
@@ -160,10 +160,10 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 				# mostrar resultados de predicción en forma de tabla
 			  	tabPanel( 'Datos crudos',
 				selectInput( 'OUTPUT.mostrar.crudo', 'Mostrar:', c(
-			  	'Coeficientes de Regresión' = 'coefRegr',
 			   	'PRESS por Número de Variables Latentes' =  'press.nvl',
 			  	'Estadística F por Número de Variables Latentes' = 'fstat.nvl',
 			   	'Probabilidad de la Estadística F por Número de Variables Latentes' = 'probFstat.nvl',
+				'Coeficientes de Regresión' = 'coefRegr',
 			   	'Concentraciones Predichas' = 'concentPred',
 			   	'Concentraciones de Prueba' = 'prueba.y'
 			   	)), tableOutput( 'OUTPUT.mostrar.crudo.figura' )
@@ -637,7 +637,7 @@ server <- function( input, output ) {
 				plot( INPUT$prueba.y, OUTPUT$concentPred,
  					xlab = 'Concentraciones Nominales', ylab = 'Concentraciones Predichas',
 				 	bg = 'black', pch = 20, cex = 1.3 )
-				lines(1 : length(INPUT$prueba.y))
+				abline(0,1)
 			})}
 		}
 
@@ -649,7 +649,7 @@ server <- function( input, output ) {
 				plot( OUTPUT$concentPred, ESTAD$errores,
  					xlab = 'Concentraciones Predichas', ylab = 'Errores Asociados',
 				 	bg = 'black', pch = 20, cex = 1.3 )
-				lines(numeric(length(OUTPUT$concentPred)))
+				abline(0,0)
 			})}
 		}
 
