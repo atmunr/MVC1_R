@@ -77,7 +77,9 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 				'Concentraciones de Calibrado' =  'calib.y',
 				'Espectros de Prueba' = 'prueba.x',
 				'Concentraciones de Prueba' = 'prueba.y'
-				)), fluidRow(column(dataTableOutput(outputId = 'INPUT.mostrar.crudo.figura'), width = 10))
+				)),
+				downloadButton('INPUT.descargar', 'Descargar'),
+				fluidRow(column(dataTableOutput(outputId = 'INPUT.mostrar.crudo.figura'), width = 10))
 				)
 
 			))
@@ -114,7 +116,9 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 				'Espectros de Calibrado' =  'calib.x',
 				'Concentraciones de Calibrado' =  'calib.y',
 				'Espectros de Prueba' = 'prueba.x'
-				)), fluidRow(column(dataTableOutput(outputId = 'PREPRO.mostrar.crudo.figura'), width = 10))
+				)),
+				downloadButton('PREPRO.descargar', 'Descargar'),
+				fluidRow(column(dataTableOutput(outputId = 'PREPRO.mostrar.crudo.figura'), width = 10))
 				)
 			))
   		),
@@ -167,7 +171,9 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 				'Coeficientes de Regresión' = 'coefRegr',
 			   	'Concentraciones Predichas' = 'concentPred',
 			   	'Concentraciones de Prueba' = 'prueba.y'
-				)), fluidRow(column(dataTableOutput(outputId = 'OUTPUT.mostrar.crudo.figura'), width = 10))
+				)),
+				downloadButton('OUTPUT.descargar', 'Descargar'),
+				fluidRow(column(dataTableOutput(outputId = 'OUTPUT.mostrar.crudo.figura'), width = 10))
 			   	)
 			))
   		),
@@ -189,7 +195,9 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 				tabPanel( 'Datos crudos',
 				selectInput( 'ESTAD.mostrar.crudo', 'Mostrar:', c(
  				'Concentraciones nominales, restadas las predichas' = 'concentPred.vs.prueba.y'
-				)), fluidRow(column(dataTableOutput(outputId = 'ESTAD.mostrar.crudo.figura'), width = 10))
+				)),
+				downloadButton('ESTAD.descargar', 'Descargar'),
+				fluidRow(column(dataTableOutput(outputId = 'ESTAD.mostrar.crudo.figura'), width = 10))
 				)
 			))
   		)
@@ -310,6 +318,14 @@ server <- function( input, output ) {
 			'prueba.x' = INPUT$prueba.x,
 			'prueba.y' = INPUT$prueba.y
 		))
+
+		output$INPUT.descargar <- downloadHandler(
+			filename = function(){'descarga.txt'},
+			content = function(fname){
+				colnames(mostrar.crudo.val) <- NULL
+				write.table(reactive(as.matrix(mostrar.crudo.val))(), fname, sep=' ', row.names=FALSE, col.names=FALSE)
+			}
+		)
 		output$INPUT.mostrar.crudo.figura <- renderDataTable(
 			{reactive(mostrar.crudo.val)()},
 			options = list(scrollX = TRUE)
@@ -447,6 +463,14 @@ server <- function( input, output ) {
 			 'calib.y' = PREPRO$calib.y ,
 			'prueba.x' = PREPRO$prueba.x
 		))
+
+		output$PREPRO.descargar <- downloadHandler(
+			filename = function(){'descarga.txt'},
+			content = function(fname){
+				colnames(mostrar.crudo.val) <- NULL
+				write.table(reactive(as.matrix(mostrar.crudo.val))(), fname, sep=' ', row.names=FALSE, col.names=FALSE)
+			}
+		)
 		output$PREPRO.mostrar.crudo.figura <- renderDataTable(
 			{reactive(mostrar.crudo.val)()},
 			options = list(scrollX = TRUE)
@@ -562,6 +586,14 @@ server <- function( input, output ) {
 			'concentPred' = OUTPUT$concentPred,
 			'prueba.y' = INPUT$prueba.y
 		))
+
+		output$OUTPUT.descargar <- downloadHandler(
+			filename = function(){'descarga.txt'},
+			content = function(fname){
+				colnames(mostrar.crudo.val) <- NULL
+				write.table(reactive(as.matrix(mostrar.crudo.val))(), fname, sep=' ', row.names=FALSE, col.names=FALSE)
+			}
+		)
 		output$OUTPUT.mostrar.crudo.figura <- renderDataTable(
 			{reactive(mostrar.crudo.val)()},
 			options = list(scrollX = TRUE)
@@ -637,6 +669,14 @@ server <- function( input, output ) {
 		mostrar.crudo.val <- as.data.frame(switch(input$ESTAD.mostrar.crudo,
 			'concentPred.vs.prueba.y' = ESTAD$errores
 		))
+
+		output$ESTAD.descargar <- downloadHandler(
+			filename = function(){'descarga.txt'},
+			content = function(fname){
+				colnames(mostrar.crudo.val) <- NULL
+				write.table(reactive(as.matrix(mostrar.crudo.val))(), fname, sep=' ', row.names=FALSE, col.names=FALSE)
+			}
+		)
 		output$ESTAD.mostrar.crudo.figura <- renderDataTable(
 			{reactive(mostrar.crudo.val)()},
 			options = list(scrollX = TRUE)
