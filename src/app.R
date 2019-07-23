@@ -45,7 +45,7 @@ ESTAD$REP     <- NULL
 # defición de la interfaz gráfica
 ui <- fluidPage( #theme = shinytheme('darkly'),
 
-	headerPanel( 'Calibración Multivariada :)' ),
+	headerPanel( 'Calibración Multivariada' ),
 	tabsetPanel(
 
 		# ingreso de datos, elección de sensores y eleminación de muestras
