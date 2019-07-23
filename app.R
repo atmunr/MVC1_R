@@ -77,8 +77,9 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 				'Concentraciones de Calibrado' =  'calib.y',
 				'Espectros de Prueba' = 'prueba.x',
 				'Concentraciones de Prueba' = 'prueba.y'
-				)), tableOutput( 'INPUT.mostrar.crudo.figura' )
+				)), fluidRow(column(dataTableOutput(outputId = 'INPUT.mostrar.crudo.figura'), width = 10))
 				)
+
 			))
   		),
 
@@ -113,7 +114,7 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 				'Espectros de Calibrado' =  'calib.x',
 				'Concentraciones de Calibrado' =  'calib.y',
 				'Espectros de Prueba' = 'prueba.x'
-				)), tableOutput( 'PREPRO.mostrar.crudo.figura' )
+				)), fluidRow(column(dataTableOutput(outputId = 'PREPRO.mostrar.crudo.figura'), width = 10))
 				)
 			))
   		),
@@ -166,7 +167,7 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 				'Coeficientes de Regresión' = 'coefRegr',
 			   	'Concentraciones Predichas' = 'concentPred',
 			   	'Concentraciones de Prueba' = 'prueba.y'
-			   	)), tableOutput( 'OUTPUT.mostrar.crudo.figura' )
+				)), fluidRow(column(dataTableOutput(outputId = 'OUTPUT.mostrar.crudo.figura'), width = 10))
 			   	)
 			))
   		),
@@ -188,7 +189,7 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 				tabPanel( 'Datos crudos',
 				selectInput( 'ESTAD.mostrar.crudo', 'Mostrar:', c(
  				'Concentraciones nominales, restadas las predichas' = 'concentPred.vs.prueba.y'
-				)), tableOutput( 'ESTAD.mostrar.crudo' )
+				)), fluidRow(column(dataTableOutput(outputId = 'ESTAD.mostrar.crudo.figura'), width = 10))
 				)
 			))
   		)
@@ -303,13 +304,16 @@ server <- function( input, output ) {
 		# con la opción elegida en el widget INPUT.mostrar.crudo
 		# se elige el valor correspondiente para pasar a renderTable()
 		# y se lo asigna a INPUT.mostrar.crudo.figura
-		output$INPUT.mostrar.crudo.figura <- renderTable(
-		switch(input$INPUT.mostrar.crudo,
+		mostrar.crudo.val <- as.data.frame(switch(input$INPUT.mostrar.crudo,
 			 'calib.x' = INPUT$calib.x ,
 			 'calib.y' = INPUT$calib.y ,
 			'prueba.x' = INPUT$prueba.x,
 			'prueba.y' = INPUT$prueba.y
 		))
+		output$INPUT.mostrar.crudo.figura <- renderDataTable(
+			{reactive(mostrar.crudo.val)()},
+			options = list(scrollX = TRUE)
+		)
 
 		# visualizacion en gráfica:
 		# con la opción elegida en el widget INPUT.mostrar.grafica
@@ -438,12 +442,15 @@ server <- function( input, output ) {
 		# con la opción elegida en el widget PREPRO.mostrar.crudo
 		# se elige el valor correspondiente para pasar a renderTable()
 		# y se lo asigna a PREPRO.mostrar.crudo.figura
-		output$PREPRO.mostrar.crudo.figura <- renderTable(
-		switch(input$PREPRO.mostrar.crudo,
+		mostrar.crudo.val <- as.data.frame(switch(input$PREPRO.mostrar.crudo,
 			 'calib.x' = PREPRO$calib.x ,
 			 'calib.y' = PREPRO$calib.y ,
-			'prueba.x' = PREPRO$prueba.x,
+			'prueba.x' = PREPRO$prueba.x
 		))
+		output$PREPRO.mostrar.crudo.figura <- renderDataTable(
+			{reactive(mostrar.crudo.val)()},
+			options = list(scrollX = TRUE)
+		)
 		# visualizacion en gráfica:
 		# con la opción elegida en el widget PREPRO.mostrar.grafica
 		# se elige el valor correspondiente y se lo asigna a
@@ -547,15 +554,18 @@ server <- function( input, output ) {
 		# con la opción elegida en el widget OUTPUT.mostrar.crudo
 		# se elige el valor correspondiente para pasar a renderTable()
 		# y se lo asigna a OUTPUT.mostrar.crudo.figura
-		output$OUTPUT.mostrar.crudo.figura <- renderTable(
-		switch(input$OUTPUT.mostrar.crudo,
-			 'coefRegr' = OUTPUT$coefRegr,
-			 'press.nvl' = OUTPUT$press.nvl,
-			 'fstat.nvl' = OUTPUT$fstat.nvl,
-			 'probFstat.nvl' = OUTPUT$probFstat.nvl,
-			 'concentPred' = OUTPUT$concentPred,
-			 'prueba.y' = INPUT$prueba.y
+		mostrar.crudo.val <- as.data.frame(switch(input$OUTPUT.mostrar.crudo,
+			'coefRegr' = OUTPUT$coefRegr,
+			'press.nvl' = OUTPUT$press.nvl,
+			'fstat.nvl' = OUTPUT$fstat.nvl,
+			'probFstat.nvl' = OUTPUT$probFstat.nvl,
+			'concentPred' = OUTPUT$concentPred,
+			'prueba.y' = INPUT$prueba.y
 		))
+		output$OUTPUT.mostrar.crudo.figura <- renderDataTable(
+			{reactive(mostrar.crudo.val)()},
+			options = list(scrollX = TRUE)
+		)
 		# visualizacion en gráfica:
 		# con la opción elegida en el widget OUTPUT.mostrar.grafica
 		# se elige el valor correspondiente y se lo asigna a
@@ -624,10 +634,13 @@ server <- function( input, output ) {
 	# visualizaciones de los datos estadísticos sobre la calidad de la prediccón
 	observe({
 
-		output$ESTAD.mostrar.crudo <- renderTable(
-			switch(input$ESTAD.mostrar.crudo,
-			 'concentPred.vs.prueba.y' = ESTAD$errores
+		mostrar.crudo.val <- as.data.frame(switch(input$ESTAD.mostrar.crudo,
+			'concentPred.vs.prueba.y' = ESTAD$errores
 		))
+		output$ESTAD.mostrar.crudo.figura <- renderDataTable(
+			{reactive(mostrar.crudo.val)()},
+			options = list(scrollX = TRUE)
+		)
 
 		# valores predichos en función de nominales
 		if (input$ESTAD.mostrar.grafica == 'concentPred.vs.prueba.y') {
