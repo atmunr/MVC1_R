@@ -32,13 +32,15 @@ OUTPUT$fstat.nvl     <- NULL
 OUTPUT$probFstat.nvl <- NULL
  # las concentraciones que predice la calibrado multivariada
 OUTPUT$concentPred   <- NULL
+ # número óptimo de variables latentes, obtenido por validación cruzada
+OUTPUT$nvl.optimo    <- NULL
 
  # datos estadísticos sobre la predicción
 ESTAD <- reactiveValues()
  # diferencia entre valor predicho y nominal para cada muestra
 ESTAD$errores <- NULL
 ESTAD$RMSEP   <- NULL
-ESTAD$REP   <- NULL
+ESTAD$REP     <- NULL
 
 # defición de la interfaz gráfica
 ui <- fluidPage( #theme = shinytheme('darkly'),
@@ -138,6 +140,10 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
                 	value = 1, min = 1 ),
 				# validación del modelo
 				actionButton( 'OUTPUT.validarModelo', 'Validar modelo' ),
+
+				tags$br(), tags$b('Número óptimo de variables latentes: '),
+				textOutput( 'OUTPUT.mostrar.nvl.optimo', inline = TRUE ),
+
 				tags$hr(), tags$b( 'Construcción del modelo' ),
 				 # elección del algoritmo
             	selectInput( 'OUTPUT.pred.alg', 'Algoritmo:',
@@ -221,6 +227,7 @@ server <- function( input, output ) {
 		OUTPUT$fstat.nvl           <<- NULL
 		OUTPUT$probFstat.nvl       <<- NULL
 		OUTPUT$concentPred         <<- NULL
+		OUTPUT$nvl.optimo          <<- NULL
 		ESTAD$errores              <<- NULL
 
 		# cargar archivos
@@ -378,6 +385,7 @@ server <- function( input, output ) {
 		OUTPUT$fstat.nvl           <<- NULL
 		OUTPUT$probFstat.nvl       <<- NULL
 		OUTPUT$concentPred         <<- NULL
+		OUTPUT$nvl.optimo          <<- NULL
 		ESTAD$errores              <<- NULL
 
 		# existen los datos preprocesados si se cargaron los datos necesarios
@@ -569,6 +577,14 @@ server <- function( input, output ) {
 		# calcula las probabilidades de obtener cada ESTADística F
 		OUTPUT$probFstat.nvl <<- as.matrix(CalcularProbF(
 			OUTPUT$fstat.nvl, ncol(calib.x), ncol(calib.x)))
+		# calcula el número óptimo de variables latentes a usar
+		for (i in 1 : length(OUTPUT$probFstat.nvl)) {
+			if (OUTPUT$probFstat.nvl[i] < 0.75) {
+				OUTPUT$nvl.optimo <<-i
+				break
+			}
+		}
+		output$OUTPUT.mostrar.nvl.optimo <- renderText(OUTPUT$nvl.optimo)
 
 	}})
 
