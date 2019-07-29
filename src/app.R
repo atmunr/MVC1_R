@@ -573,7 +573,11 @@ server <- function( input, output ) {
 			calib.x, calib.y, input$OUTPUT.nvl.max,
 			centrar = input$PREPRO.centrar))
 		# calcula las ESTADísticas F producidas con los valores PRESS
-		OUTPUT$fstat.nvl <<- OUTPUT$press.nvl / OUTPUT$press.nvl[ length(OUTPUT$press.nvl) ]
+		OUTPUT$fstat.nvl <<- OUTPUT$press.nvl / min(OUTPUT$press.nvl)
+		for (i in match(1,OUTPUT$fstat.nvl) : length(OUTPUT$fstat.nvl)) {
+			if(OUTPUT$fstat.nvl[i] != 1) OUTPUT$fstat.nvl[i] <<- 0
+		}
+
 		# calcula las probabilidades de obtener cada ESTADística F
 		OUTPUT$probFstat.nvl <<- as.matrix(CalcularProbF(
 			OUTPUT$fstat.nvl, ncol(calib.x), ncol(calib.x)))
