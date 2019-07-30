@@ -1,8 +1,6 @@
+Webapp for doing first order multivariate calibration on NIR spectroscopic data.
 
-Aplicación web super divertida para hacer calibración multivariante de primer
-orden sobre datos espectroscópicos en quimometría.
-
-[Se puede probar aquí.](http://atmunr.shinyapps.io/mvc1 'Se puede probar aquí.')
+[Se puede probar aquí.](http://atmunr.shinyapps.io/mvc1 'Try it here.')
 
 ![alt text](https://raw.githubusercontent.com/atmunr/MVC1/master/preview/1.png)
 ![alt text](https://raw.githubusercontent.com/atmunr/MVC1/master/preview/2.png)
