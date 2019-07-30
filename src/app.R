@@ -45,42 +45,42 @@ ESTAD$REP     <- NULL
 # defición de la interfaz gráfica
 ui <- fluidPage( #theme = shinytheme('darkly'),
 
-	headerPanel( 'Calibración Multivariada' ),
+	headerPanel( 'First order multivariate calibration' ),
 	tabsetPanel(
 
 		# ingreso de datos, elección de sensores y eleminación de muestras
-		tabPanel( 'Datos de entrada',
+		tabPanel( 'Input data',
 			sidebarPanel(
 				# ingresar de archivos de entrada
-				fileInput( 'calib.x'  , 'Espectros de Calibrado' ),
-            	fileInput( 'calib.y'  , 'Concentraciones de Calibrado' ),
-            	fileInput( 'prueba.x' , 'Espectros de Prueba' ),
-				fileInput( 'prueba.y' , 'Concentraciones de Prueba' ),
+				fileInput( 'calib.x'  , 'Calibration spectra' ),
+            	fileInput( 'calib.y'  , 'Calibration analyte concentrations' ),
+            	fileInput( 'prueba.x' , 'Testing spectra' ),
+				fileInput( 'prueba.y' , 'Testing analyte concentrations' ),
 				# elegir de sensores
-				textInput( 'INPUT.elegirSensores', 'Sensores' ),
+				textInput( 'INPUT.elegirSensores', 'Choose sensors' ),
 				# quitar muestras
-				textInput( 'INPUT.quitarMuestras.calib', 'Quitar muestras de calibrado' ),
-				textInput( 'INPUT.quitarMuestras.prueba', 'Quitar muestras de prueba' ),
+				textInput( 'INPUT.quitarMuestras.calib', 'Remove calibration samples' ),
+				textInput( 'INPUT.quitarMuestras.prueba', 'Remove testing samples' ),
 				# aplicar cambios
-				actionButton('INPUT.aplicar', 'Actualizar' )
+				actionButton('INPUT.aplicar', 'Apply changes' )
 			),
 			mainPanel(tabsetPanel( # mostrar datos en forma de tabla
-				tabPanel( 'Gráfica', # mostrar datos como una gráfica
-				selectInput( 'INPUT.mostrar.grafica', 'Mostrar:', c(
-				'Espectros de Calibrado' =  'calib.x',
-				'Concentraciones de Calibrado' =  'calib.y',
-				'Espectros de Prueba' = 'prueba.x',
-				'Concentraciones de Prueba' = 'prueba.y'
+				tabPanel( 'Plots', # mostrar datos como una gráfica
+				selectInput( 'INPUT.mostrar.grafica', 'Display:', c(
+				'Calibration spectra' =  'calib.x',
+				'Calibration analyte concentrations' =  'calib.y',
+				'Testing spectra' = 'prueba.x',
+				'Testing analyte concentrations' = 'prueba.y'
 				)), plotOutput( 'INPUT.mostrar.grafica.figura' )
 				),
-				tabPanel( 'Datos crudos',
-				selectInput( 'INPUT.mostrar.crudo', 'Mostrar:', c(
-				'Espectros de Calibrado' =  'calib.x',
-				'Concentraciones de Calibrado' =  'calib.y',
-				'Espectros de Prueba' = 'prueba.x',
-				'Concentraciones de Prueba' = 'prueba.y'
+				tabPanel( 'Raw data',
+				selectInput( 'INPUT.mostrar.crudo', 'Display:', c(
+				'Calibration spectra' =  'calib.x',
+				'Calibration analyte concentrations' =  'calib.y',
+				'Testing spectra' = 'prueba.x',
+				'Testing analyte concentrations' = 'prueba.y'
 				)),
-				downloadButton('INPUT.descargar', 'Descargar'),
+				downloadButton('INPUT.descargar', 'Download'),
 				fluidRow(column(dataTableOutput(outputId = 'INPUT.mostrar.crudo.figura'), width = 10))
 				)
 
@@ -88,103 +88,103 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
   		),
 
 		# sección de preprocesamiento de datos
-		tabPanel( 'Preprocesamiento',
+		tabPanel( 'Digital preprocessing',
 			sidebarPanel(
 				# elegir de algoritmos de preprocesamiento
-				checkboxInput( 'PREPRO.centrar', 'Centrar Datos' ),
+				checkboxInput( 'PREPRO.centrar', 'Mean centering' ),
 				checkboxInput( 'PREPRO.SavitzkyGolay', 'Suavizado/derivadas (Savitzky Golay)' ),
-				numericInput( 'PREPRO.SavitzkyGolay.ord', 'Orden de derivada',
+				numericInput( 'PREPRO.SavitzkyGolay.ord', 'Derivative order',
 					min = 0, max = 2, value = 0 ),
-				numericInput( 'PREPRO.SavitzkyGolay.grad', 'Grado del polinomio',
+				numericInput( 'PREPRO.SavitzkyGolay.grad', 'Polinomial degree',
 					min = 0, max = 5, value = 1 ),
-				numericInput( 'PREPRO.SavitzkyGolay.vlen', 'Largo de la ventana',
+				numericInput( 'PREPRO.SavitzkyGolay.vlen', 'Sliding window length',
 					min = 0, max = 9, value = 1 ),
-				checkboxInput( 'PREPRO.MSC', 'Corrección de Esparcimiento Multiplicativo (MSC)' ),
+				checkboxInput( 'PREPRO.MSC', 'Multiplicative Scattering Correction' ),
 				# aplicar cambios
-				actionButton( 'PREPRO.aplicar', 'Actualizar' )
+				actionButton( 'PREPRO.aplicar', 'Apply changes' )
 			),
 			mainPanel(tabsetPanel(
 				# mostrar datos procesados en forma de gráfica
-				tabPanel( 'Gráfica',
-				selectInput( 'PREPRO.mostrar.grafica', 'Mostrar:', c(
-				'Espectros de Calibrado' =  'calib.x',
-				'Concentraciones de Calibrado' =  'calib.y',
-				'Espectros de Prueba' = 'prueba.x'
+				tabPanel( 'Plots',
+				selectInput( 'PREPRO.mostrar.grafica', 'Display:', c(
+				'Calibration spectra' =  'calib.x',
+				'Calibration analyte concentrations' =  'calib.y',
+				'Testing spectra' = 'prueba.x'
 				)), plotOutput( 'PREPRO.mostrar.grafica.figura' )
 				),
 				# mostrar datos procesados en forma de tabla
-				tabPanel( 'Datos crudos',
-				selectInput( 'PREPRO.mostrar.crudo', 'Mostrar:', c(
-				'Espectros de Calibrado' =  'calib.x',
-				'Concentraciones de Calibrado' =  'calib.y',
-				'Espectros de Prueba' = 'prueba.x'
+				tabPanel( 'Raw data',
+				selectInput( 'PREPRO.mostrar.crudo', 'Display:', c(
+				'Calibration spectra' =  'calib.x',
+				'Calibration analyte concentrations' =  'calib.y',
+				'Testing spectra' = 'prueba.x'
 				)),
-				downloadButton('PREPRO.descargar', 'Descargar'),
+				downloadButton('PREPRO.descargar', 'Download'),
 				fluidRow(column(dataTableOutput(outputId = 'PREPRO.mostrar.crudo.figura'), width = 10))
 				)
 			))
   		),
 
 		# sección de construcción y validación del modelo y predicción
-		tabPanel( 'Datos de salida',
+		tabPanel( 'Validation and Predictions',
 			sidebarPanel(
 				# validación del modelo
-				tags$b( 'Validación Cruzada'),
+				tags$b( 'Cross validation'),
 				# elección del método de validación
-				selectInput( 'OUTPUT.valid.alg', 'Técnica de Validacón:',
+				selectInput( 'OUTPUT.valid.alg', 'Validation techniques:',
 					c('Leave one out' = 'LOO'
 				)),
 				# elección del número máximo de variables latentes para la
 				# validación
-				numericInput( 'OUTPUT.nvl.max', 'Número Máximo de Variables Latentes',
+				numericInput( 'OUTPUT.nvl.max', 'Maximum number of latent variables',
                 	value = 1, min = 1 ),
 				# validación del modelo
-				actionButton( 'OUTPUT.validarModelo', 'Validar modelo' ),
+				actionButton( 'OUTPUT.validarModelo', 'Validation' ),
 
-				tags$br(), tags$b('Número óptimo de variables latentes: '),
+				tags$br(), tags$b('Optimum number of latent variables: '),
 				textOutput( 'OUTPUT.mostrar.nvl.optimo', inline = TRUE ),
 
-				tags$hr(), tags$b( 'Construcción del modelo' ),
+				tags$hr(), tags$b( 'Predictions' ),
 				 # elección del algoritmo
-            	selectInput( 'OUTPUT.pred.alg', 'Algoritmo:',
+            	selectInput( 'OUTPUT.pred.alg', 'Algorithm:',
                 	c('PLS-1' = 'PLS1'#,
                 	  #'PCR'   = 'PCR'
             	)),
 				# elección del número de variables latentes
-            	numericInput( 'OUTPUT.nvl', 'Variables Latentes',
+            	numericInput( 'OUTPUT.nvl', 'Latent variables',
                 	value = 1, min = 1 ),
 				# construcción del modelo
-            	actionButton( 'OUTPUT.construirModelo', 'Construir modelo' )
+            	actionButton( 'OUTPUT.construirModelo', 'Predict' )
 			),
 			mainPanel(tabsetPanel(
 				# mostrar resultados de predicción en forma de gráfica
-				tabPanel( 'Gráfica',
-				selectInput( 'OUTPUT.mostrar.grafica', 'Mostrar:', c(
-				'PRESS por Número de Variables Latentes' =  'press.nvl',
-				'Estadística F por Número de Variables Latentes' = 'fstat.nvl',
-				'Probabilidad de la Estadística F por Número de Variables Latentes' = 'probFstat.nvl',
-				'Coeficientes de Regresión' =  'coefRegr',
-				'Concentraciones Predichas' = 'concentPred',
-				'Concentraciones de Prueba' = 'prueba.y'
+				tabPanel( 'Plots',
+				selectInput( 'OUTPUT.mostrar.grafica', 'Display:', c(
+				'PRESS error per number of latent variables' =  'press.nvl',
+				'F statistic per number of latent variables' = 'fstat.nvl',
+				'Asociated probability per number of latent variables' = 'probFstat.nvl',
+				'Regression coeficients' =  'coefRegr',
+				'Predicted concentrations' = 'concentPred',
+				'Testing analyte concentrations' = 'prueba.y'
 				)), plotOutput( 'OUTPUT.mostrar.grafica.figura' )
 				),
 				# mostrar resultados de predicción en forma de tabla
-			  	tabPanel( 'Datos crudos',
-				selectInput( 'OUTPUT.mostrar.crudo', 'Mostrar:', c(
-			   	'PRESS por Número de Variables Latentes' =  'press.nvl',
-			  	'Estadística F por Número de Variables Latentes' = 'fstat.nvl',
-			   	'Probabilidad de la Estadística F por Número de Variables Latentes' = 'probFstat.nvl',
-				'Coeficientes de Regresión' = 'coefRegr',
-			   	'Concentraciones Predichas' = 'concentPred',
-			   	'Concentraciones de Prueba' = 'prueba.y'
+			  	tabPanel( 'Raw data',
+				selectInput( 'OUTPUT.mostrar.crudo', 'Display:', c(
+			   	'PRESS error per number of latent variables' =  'press.nvl',
+			  	'F statistic per number of latent variables' = 'fstat.nvl',
+			   	'Asociated probability per number of latent variables' = 'probFstat.nvl',
+				'Regression coeficients' = 'coefRegr',
+			   	'Predicted concentrations' = 'concentPred',
+			   	'Testing analyte concentrations' = 'prueba.y'
 				)),
-				downloadButton('OUTPUT.descargar', 'Descargar'),
+				downloadButton('OUTPUT.descargar', 'Download'),
 				fluidRow(column(dataTableOutput(outputId = 'OUTPUT.mostrar.crudo.figura'), width = 10))
 			   	)
 			))
   		),
 		# estadísticas sobre la calidad de la predicción
-		tabPanel( 'Estadísticas',
+		tabPanel( 'Statistics',
 			sidebarPanel(
 				tags$b('RMSEP: '), textOutput( 'ESTAD.mostrar.RMSEP', inline=TRUE ), tags$br(),
 				tags$hr(),
@@ -192,17 +192,17 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 				tags$hr()
 			),
 			mainPanel(tabsetPanel(
-				tabPanel( 'Gráfica',
- 				selectInput( 'ESTAD.mostrar.grafica', 'Mostrar:', c(
- 				'Concentraciones predichas en función de nominales' = 'concentPred.vs.prueba.y',
- 				'Errores en función de concentraciones predichas' = 'error.vs.concentPred'
+				tabPanel( 'Plots',
+ 				selectInput( 'ESTAD.mostrar.grafica', 'Display:', c(
+ 				'Concentrations: predicted versus nominal ' = 'concentPred.vs.prueba.y',
+ 				'Error for each prediction' = 'error.vs.concentPred'
 				)), plotOutput( 'ESTAD.mostrar.grafica' )
 				),
-				tabPanel( 'Datos crudos',
-				selectInput( 'ESTAD.mostrar.crudo', 'Mostrar:', c(
- 				'Concentraciones nominales, restadas las predichas' = 'concentPred.vs.prueba.y'
+				tabPanel( 'Raw data',
+				selectInput( 'ESTAD.mostrar.crudo', 'Display:', c(
+ 				'Concentrations: nominal minus predicted' = 'concentPred.vs.prueba.y'
 				)),
-				downloadButton('ESTAD.descargar', 'Descargar'),
+				downloadButton('ESTAD.descargar', 'Download'),
 				fluidRow(column(dataTableOutput(outputId = 'ESTAD.mostrar.crudo.figura'), width = 10))
 				)
 			))
@@ -327,7 +327,7 @@ server <- function( input, output ) {
 		))
 
 		output$INPUT.descargar <- downloadHandler(
-			filename = function(){'descarga.txt'},
+			filename = function(){'download.txt'},
 			content = function(fname){
 				colnames(mostrar.crudo.val) <- NULL
 				write.table(reactive(as.matrix(mostrar.crudo.val))(), fname, sep=' ', row.names=FALSE, col.names=FALSE)
@@ -362,14 +362,14 @@ server <- function( input, output ) {
 				# almacenan como columnas en una matriz
 				'calib.x' = , 'prueba.x' = {
 					matplot( 1 : nrow(mostrar.grafica.val), mostrar.grafica.val,
-   						xlab = 'N° de Sensor', ylab = 'Absorbancia',
+   						xlab = 'Sensor', ylab = 'Intensity',
    						lwd = 1.5, type = 'l' ) },
 				# como las concentraciones se almacenan en una matriz (a pesar
 				# de ser una sola columna) se llama a la función plot sobre
 				# la primer columna
 				'calib.y' = , 'prueba.y' = {
 					plot( 1 : nrow(mostrar.grafica.val), mostrar.grafica.val[,1],
-   						xlab = 'N° de Muestra', ylab = 'Contenido',
+   						xlab = 'Sample number', ylab = 'Concentration',
    						bg = 'black', pch = 20, cex = 1.3 )
 					lines(mostrar.grafica.val) }
 			)
@@ -473,7 +473,7 @@ server <- function( input, output ) {
 		))
 
 		output$PREPRO.descargar <- downloadHandler(
-			filename = function(){'descarga.txt'},
+			filename = function(){'download.txt'},
 			content = function(fname){
 				colnames(mostrar.crudo.val) <- NULL
 				write.table(reactive(as.matrix(mostrar.crudo.val))(), fname, sep=' ', row.names=FALSE, col.names=FALSE)
@@ -504,14 +504,14 @@ server <- function( input, output ) {
 				# almacenan como columnas en una matriz
 				'calib.x' = , 'prueba.x' = {
 					matplot( 1 : nrow(mostrar.grafica.val), mostrar.grafica.val,
-   						xlab = 'N° de Sensor', ylab = 'Absorbancia',
+   						xlab = 'Sensor', ylab = 'Intensity',
    						lwd = 1.5, type = 'l' ) },
 				# como las concentraciones se almacenan en una matriz (a pesar
 				# de ser una sola columna) se llama a la función plot sobre
 				# la primer columna
 				'calib.y' = {
 					plot( 1 : nrow(mostrar.grafica.val), mostrar.grafica.val[,1],
-   						xlab = 'N° de Muestra', ylab = 'Contenido',
+   						xlab = 'Sample number', ylab = 'Concentration',
    						bg = 'black', pch = 20, cex = 1.3 )
 					lines(mostrar.grafica.val) }
 			)
@@ -608,7 +608,7 @@ server <- function( input, output ) {
 		))
 
 		output$OUTPUT.descargar <- downloadHandler(
-			filename = function(){'descarga.txt'},
+			filename = function(){'download.txt'},
 			content = function(fname){
 				colnames(mostrar.crudo.val) <- NULL
 				write.table(reactive(as.matrix(mostrar.crudo.val))(), fname, sep=' ', row.names=FALSE, col.names=FALSE)
@@ -643,17 +643,17 @@ server <- function( input, output ) {
 				# la primer columna de cada uno
 				'coefRegr' = {
 					plot( 1 : nrow(mostrar.grafica.val), mostrar.grafica.val[,1],
-	   					xlab = 'N° de Sensor', ylab = 'Valor de Coeficiente',
+	   					xlab = 'Sensor', ylab = 'Regression coefficients',
 	   					lwd = 1.5, type = 'l' ) },
 				'press.nvl' = , 'fstat.nvl' = ,
 				'probFstat.nvl' = {
 					plot( 1 : nrow(mostrar.grafica.val), mostrar.grafica.val[,1],
-	   					xlab = 'N° de Variables Latenes', ylab = 'Valor',
+	   					xlab = 'Latent variables used', ylab = 'Value',
 					bg = 'black', pch = 20, cex = 1.3 )
 					lines(mostrar.grafica.val) },
 				'concentPred' = , 'prueba.y' = {
 					plot( 1 : nrow(mostrar.grafica.val), mostrar.grafica.val[,1],
-   						xlab = 'N° de Muestra', ylab = 'Concentración',
+   						xlab = 'Sample number', ylab = 'Analyte concentration',
    						bg = 'black', pch = 20, cex = 1.3 )
 					lines(mostrar.grafica.val) }
 			)
@@ -691,7 +691,7 @@ server <- function( input, output ) {
 		))
 
 		output$ESTAD.descargar <- downloadHandler(
-			filename = function(){'descarga.txt'},
+			filename = function(){'download.txt'},
 			content = function(fname){
 				colnames(mostrar.crudo.val) <- NULL
 				write.table(reactive(as.matrix(mostrar.crudo.val))(), fname, sep=' ', row.names=FALSE, col.names=FALSE)
@@ -708,7 +708,7 @@ server <- function( input, output ) {
 				   output$ESTAD.mostrar.grafica <- NULL }
 			else { output$ESTAD.mostrar.grafica <- renderPlot({
 				plot( INPUT$prueba.y, OUTPUT$concentPred,
- 					xlab = 'Concentraciones Nominales', ylab = 'Concentraciones Predichas',
+ 					xlab = 'Concentraciones Nominales', ylab = 'Predicted concentrations',
 				 	bg = 'black', pch = 20, cex = 1.3 )
 				abline(0,1)
 			})}
@@ -720,7 +720,7 @@ server <- function( input, output ) {
 				   output$ESTAD.mostrar.grafica <- NULL }
 			else { output$ESTAD.mostrar.grafica <- renderPlot({
 				plot( OUTPUT$concentPred, ESTAD$errores,
- 					xlab = 'Concentraciones Predichas', ylab = 'Errores Asociados',
+					xlab = 'Predicted concentrations', ylab = 'Error',
 				 	bg = 'black', pch = 20, cex = 1.3 )
 				abline(0,0)
 			})}
