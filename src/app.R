@@ -92,7 +92,7 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 			sidebarPanel(
 				# elegir de algoritmos de preprocesamiento
 				checkboxInput( 'PREPRO.centrar', 'Mean centering' ),
-				checkboxInput( 'PREPRO.SavitzkyGolay', 'Suavizado/derivadas (Savitzky Golay)' ),
+				checkboxInput( 'PREPRO.SavitzkyGolay', 'Smoothing/derivatives (Savitzky Golay)' ),
 				numericInput( 'PREPRO.SavitzkyGolay.ord', 'Derivative order',
 					min = 0, max = 2, value = 0 ),
 				numericInput( 'PREPRO.SavitzkyGolay.grad', 'Polinomial degree',
