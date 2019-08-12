@@ -3,8 +3,8 @@
 MVC1 provides a clean and intuitive interface for performing first order
 multivariate calibration on NIR spectroscopic data.
 
-It's written as a web app in R shiny, and free under the MIT License.
-You can install it on your own server or
+It's written as a web app in R shiny and free under the MIT License.
+You can install on R shiny server or
 [try it here first.](http://atmunr.shinyapps.io/mvc1)
 
 ## Contents
