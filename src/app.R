@@ -45,7 +45,7 @@ ESTAD$REP     <- NULL
 # defición de la interfaz gráfica
 ui <- fluidPage( #theme = shinytheme('darkly'),
 
-	headerPanel( 'First order multivariate calibration' ),
+	headerPanel( 'MVC1 - first order multivariate calibration' ),
 	tabsetPanel(
 
 		# ingreso de datos, elección de sensores y eleminación de muestras
@@ -92,7 +92,7 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 			sidebarPanel(
 				# elegir de algoritmos de preprocesamiento
 				checkboxInput( 'PREPRO.centrar', 'Mean centering' ),
-				checkboxInput( 'PREPRO.SavitzkyGolay', 'Smoothing/derivatives (Savitzky Golay)' ),
+				checkboxInput( 'PREPRO.SavitzkyGolay', 'Savitzky Golay filter' ),
 				numericInput( 'PREPRO.SavitzkyGolay.ord', 'Derivative order',
 					min = 0, value = 0 ),
 				numericInput( 'PREPRO.SavitzkyGolay.grad', 'Polinomial degree',
@@ -126,7 +126,7 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
   		),
 
 		# sección de construcción y validación del modelo y predicción
-		tabPanel( 'Validation and Predictions',
+		tabPanel( 'Validation and predictions',
 			sidebarPanel(
 				# validación del modelo
 				tags$b( 'Cross validation'),
