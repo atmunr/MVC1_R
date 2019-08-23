@@ -45,22 +45,22 @@ ESTAD$REP     <- NULL
 # defición de la interfaz gráfica
 ui <- fluidPage( #theme = shinytheme('darkly'),
 
-	headerPanel( 'MVC1 - first order multivariate calibration' ),
+	headerPanel( 'First-order multivariate calibration' ),
 	tabsetPanel(
 
 		# ingreso de datos, elección de sensores y eleminación de muestras
-		tabPanel( 'Input data',
+		tabPanel( 'Data input',
 			sidebarPanel(
 				# ingresar de archivos de entrada
 				fileInput( 'calib.x'  , 'Calibration spectra' ),
             	fileInput( 'calib.y'  , 'Calibration analyte concentrations' ),
-            	fileInput( 'prueba.x' , 'Testing spectra' ),
-				fileInput( 'prueba.y' , 'Testing analyte concentrations' ),
+            	fileInput( 'prueba.x' , 'Test spectra' ),
+				fileInput( 'prueba.y' , 'Test analyte concentrations' ),
 				# elegir de sensores
-				textInput( 'INPUT.elegirSensores', 'Choose sensors' ),
+				textInput( 'INPUT.elegirSensores', 'Select sensors' ),
 				# quitar muestras
 				textInput( 'INPUT.quitarMuestras.calib', 'Remove calibration samples' ),
-				textInput( 'INPUT.quitarMuestras.prueba', 'Remove testing samples' ),
+				textInput( 'INPUT.quitarMuestras.prueba', 'Remove test samples' ),
 				# aplicar cambios
 				actionButton('INPUT.aplicar', 'Apply changes' )
 			),
@@ -69,16 +69,16 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 				selectInput( 'INPUT.mostrar.grafica', 'Display:', c(
 				'Calibration spectra' =  'calib.x',
 				'Calibration analyte concentrations' =  'calib.y',
-				'Testing spectra' = 'prueba.x',
-				'Testing analyte concentrations' = 'prueba.y'
+				'Test spectra' = 'prueba.x',
+				'Test analyte concentrations' = 'prueba.y'
 				)), plotOutput( 'INPUT.mostrar.grafica.figura' )
 				),
 				tabPanel( 'Raw data',
 				selectInput( 'INPUT.mostrar.crudo', 'Display:', c(
 				'Calibration spectra' =  'calib.x',
 				'Calibration analyte concentrations' =  'calib.y',
-				'Testing spectra' = 'prueba.x',
-				'Testing analyte concentrations' = 'prueba.y'
+				'Test spectra' = 'prueba.x',
+				'Test analyte concentrations' = 'prueba.y'
 				)),
 				downloadButton('INPUT.descargar', 'Download'),
 				fluidRow(column(dataTableOutput(outputId = 'INPUT.mostrar.crudo.figura'), width = 10))
@@ -88,16 +88,16 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
   		),
 
 		# sección de preprocesamiento de datos
-		tabPanel( 'Digital preprocessing',
+		tabPanel( 'Digital pre-processing',
 			sidebarPanel(
 				# elegir de algoritmos de preprocesamiento
 				checkboxInput( 'PREPRO.centrar', 'Mean centering' ),
-				checkboxInput( 'PREPRO.SavitzkyGolay', 'Savitzky Golay filter' ),
+				checkboxInput( 'PREPRO.SavitzkyGolay', 'Smoothing/derivatives (Savitsky-Golay)' ),
 				numericInput( 'PREPRO.SavitzkyGolay.ord', 'Derivative order',
 					min = 0, value = 0 ),
-				numericInput( 'PREPRO.SavitzkyGolay.grad', 'Polinomial degree',
+				numericInput( 'PREPRO.SavitzkyGolay.grad', 'Polynomial degree',
 					min = 1, value = 1 ),
-				numericInput( 'PREPRO.SavitzkyGolay.vlen', 'Sliding window length',
+				numericInput( 'PREPRO.SavitzkyGolay.vlen', 'Window size',
 					min = 3, value = 3, step = 2 ),
 				checkboxInput( 'PREPRO.MSC', 'Multiplicative Scattering Correction' ),
 				# aplicar cambios
@@ -109,7 +109,7 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 				selectInput( 'PREPRO.mostrar.grafica', 'Display:', c(
 				'Calibration spectra' =  'calib.x',
 				'Calibration analyte concentrations' =  'calib.y',
-				'Testing spectra' = 'prueba.x'
+				'Test spectra' = 'prueba.x'
 				)), plotOutput( 'PREPRO.mostrar.grafica.figura' )
 				),
 				# mostrar datos procesados en forma de tabla
@@ -117,7 +117,7 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 				selectInput( 'PREPRO.mostrar.crudo', 'Display:', c(
 				'Calibration spectra' =  'calib.x',
 				'Calibration analyte concentrations' =  'calib.y',
-				'Testing spectra' = 'prueba.x'
+				'Test spectra' = 'prueba.x'
 				)),
 				downloadButton('PREPRO.descargar', 'Download'),
 				fluidRow(column(dataTableOutput(outputId = 'PREPRO.mostrar.crudo.figura'), width = 10))
@@ -129,22 +129,22 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 		tabPanel( 'Validation and predictions',
 			sidebarPanel(
 				# validación del modelo
-				tags$b( 'Cross validation'),
+				tags$b( 'Cross-validation'),
 				# elección del método de validación
 				selectInput( 'OUTPUT.valid.alg', 'Validation techniques:',
-					c('Leave one out' = 'LOO'
+					c('Leave-one-out' = 'LOO'
 				)),
 				# elección del número máximo de variables latentes para la
 				# validación
 				numericInput( 'OUTPUT.nvl.max', 'Maximum number of latent variables',
                 	value = 1, min = 1 ),
 				# validación del modelo
-				actionButton( 'OUTPUT.validarModelo', 'Validation' ),
+				actionButton( 'OUTPUT.validarModelo', 'CV' ),
 
 				tags$br(), tags$b('Optimum number of latent variables: '),
 				textOutput( 'OUTPUT.mostrar.nvl.optimo', inline = TRUE ),
 
-				tags$hr(), tags$b( 'Predictions' ),
+				tags$hr(), tags$b( 'Prediction models' ),
 				 # elección del algoritmo
             	selectInput( 'OUTPUT.pred.alg', 'Algorithm:',
                 	c('PLS-1' = 'PLS1'#,
@@ -160,23 +160,23 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 				# mostrar resultados de predicción en forma de gráfica
 				tabPanel( 'Plots',
 				selectInput( 'OUTPUT.mostrar.grafica', 'Display:', c(
-				'PRESS error per number of latent variables' =  'press.nvl',
-				'F statistic per number of latent variables' = 'fstat.nvl',
-				'Asociated probability per number of latent variables' = 'probFstat.nvl',
+				'Sum of square errors vs. number of latent variables' =  'press.nvl',
+				'F statistic vs. number of latent variables' = 'fstat.nvl',
+				'Asociated probability vs. number of latent variables' = 'probFstat.nvl',
 				'Regression coeficients' =  'coefRegr',
 				'Predicted concentrations' = 'concentPred',
-				'Testing analyte concentrations' = 'prueba.y'
+				'Test analyte concentrations' = 'prueba.y'
 				)), plotOutput( 'OUTPUT.mostrar.grafica.figura' )
 				),
 				# mostrar resultados de predicción en forma de tabla
 			  	tabPanel( 'Raw data',
 				selectInput( 'OUTPUT.mostrar.crudo', 'Display:', c(
-			   	'PRESS error per number of latent variables' =  'press.nvl',
-			  	'F statistic per number of latent variables' = 'fstat.nvl',
-			   	'Asociated probability per number of latent variables' = 'probFstat.nvl',
+			   	'PRESS error vs. number of latent variables' =  'press.nvl',
+			  	'F statistic vs. number of latent variables' = 'fstat.nvl',
+			   	'Asociated probability vs. number of latent variables' = 'probFstat.nvl',
 				'Regression coeficients' = 'coefRegr',
 			   	'Predicted concentrations' = 'concentPred',
-			   	'Testing analyte concentrations' = 'prueba.y'
+			   	'Test analyte concentrations' = 'prueba.y'
 				)),
 				downloadButton('OUTPUT.descargar', 'Download'),
 				fluidRow(column(dataTableOutput(outputId = 'OUTPUT.mostrar.crudo.figura'), width = 10))
@@ -194,8 +194,8 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 			mainPanel(tabsetPanel(
 				tabPanel( 'Plots',
  				selectInput( 'ESTAD.mostrar.grafica', 'Display:', c(
- 				'Concentrations: predicted versus nominal ' = 'concentPred.vs.prueba.y',
- 				'Error for each prediction' = 'error.vs.concentPred'
+ 				'Predicted vs. nominal ' = 'concentPred.vs.prueba.y',
+ 				'Concentration errors (nominal - predicted)' = 'error.vs.concentPred'
 				)), plotOutput( 'ESTAD.mostrar.grafica' )
 				),
 				tabPanel( 'Raw data',
