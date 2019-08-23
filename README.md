@@ -1,6 +1,6 @@
-## MVC1
+## MVC1_R
 
-MVC1 provides a clean and intuitive interface for performing first order
+MVC1_R provides a clean and intuitive interface for performing first order
 multivariate calibration on NIR spectroscopic data.
 
 It's written as a web app in R shiny and free under the MIT License.
