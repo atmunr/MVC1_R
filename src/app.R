@@ -92,7 +92,7 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 			sidebarPanel(
 				# elegir de algoritmos de preprocesamiento
 				checkboxInput( 'PREPRO.centrar', 'Mean centering' ),
-				checkboxInput( 'PREPRO.SavitzkyGolay', 'Smoothing/derivatives (Savitsky-Golay)' ),
+				checkboxInput( 'PREPRO.SavitzkyGolay', 'Smoothing/derivatives (Savitzky-Golay)' ),
 				numericInput( 'PREPRO.SavitzkyGolay.ord', 'Derivative order',
 					min = 0, value = 0 ),
 				numericInput( 'PREPRO.SavitzkyGolay.grad', 'Polynomial degree',
@@ -144,9 +144,8 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 				tags$br(), tags$b('Optimum number of latent variables: '),
 				textOutput( 'OUTPUT.mostrar.nvl.optimo', inline = TRUE ),
 
-				tags$hr(), tags$b( 'Prediction models' ),
 				 # elección del algoritmo
-            	selectInput( 'OUTPUT.pred.alg', 'Algorithm:',
+            	selectInput( 'OUTPUT.pred.alg', 'Prediction models:',
                 	c('PLS-1' = 'PLS1'#,
                 	  #'PCR'   = 'PCR'
             	)),
@@ -162,8 +161,8 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 				selectInput( 'OUTPUT.mostrar.grafica', 'Display:', c(
 				'Sum of square errors vs. number of latent variables' =  'press.nvl',
 				'F statistic vs. number of latent variables' = 'fstat.nvl',
-				'Asociated probability vs. number of latent variables' = 'probFstat.nvl',
-				'Regression coeficients' =  'coefRegr',
+				'Associated probability vs. number of latent variables' = 'probFstat.nvl',
+				'Regression coefficients' =  'coefRegr',
 				'Predicted concentrations' = 'concentPred',
 				'Test analyte concentrations' = 'prueba.y'
 				)), plotOutput( 'OUTPUT.mostrar.grafica.figura' )
@@ -171,10 +170,10 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 				# mostrar resultados de predicción en forma de tabla
 			  	tabPanel( 'Raw data',
 				selectInput( 'OUTPUT.mostrar.crudo', 'Display:', c(
-			   	'PRESS error vs. number of latent variables' =  'press.nvl',
+			   	'Sum of square errors vs. number of latent variables' =  'press.nvl',
 			  	'F statistic vs. number of latent variables' = 'fstat.nvl',
-			   	'Asociated probability vs. number of latent variables' = 'probFstat.nvl',
-				'Regression coeficients' = 'coefRegr',
+			   	'Associated probability vs. number of latent variables' = 'probFstat.nvl',
+				'Regression coefficients' = 'coefRegr',
 			   	'Predicted concentrations' = 'concentPred',
 			   	'Test analyte concentrations' = 'prueba.y'
 				)),
@@ -200,7 +199,7 @@ ui <- fluidPage( #theme = shinytheme('darkly'),
 				),
 				tabPanel( 'Raw data',
 				selectInput( 'ESTAD.mostrar.crudo', 'Display:', c(
- 				'Concentrations: nominal minus predicted' = 'concentPred.vs.prueba.y'
+ 				'Concentration errors: (nominal - predicted)' = 'concentPred.vs.prueba.y'
 				)),
 				downloadButton('ESTAD.descargar', 'Download'),
 				fluidRow(column(dataTableOutput(outputId = 'ESTAD.mostrar.crudo.figura'), width = 10))
